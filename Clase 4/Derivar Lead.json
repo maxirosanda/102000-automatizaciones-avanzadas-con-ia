@@ -1,0 +1,192 @@
+{
+  "name": "Derivar Lead",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI",
+          "mode": "list",
+          "cachedResultName": "Leads clase 4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "revision manual",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "empresa": "={{ $('Start').item.json.empresa }}",
+            "email": "={{ $('Start').item.json.email }}",
+            "nombre": "={{ $('Start').item.json.nombre }}",
+            "resumen": "={{ $('Start').item.json.resumen }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumen",
+              "displayName": "resumen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        64
+      ],
+      "id": "48e7753e-8e17-4ada-ae50-b38ff095a995",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G3570pPLQL2svNnW",
+          "name": "coder 100200"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8525478417",
+        "text": "=🚨 ESCALADO A HUMANO — Soporte_Humano_Requerido\n\nLead: {{ $json.nombre }} ({{ $json.email }})\nEmpresa: {{ $('Start').item.json.empresa }}\nIntención detectada:{{ $('Start').item.json.intent }} — confianza {{ $('Start').item.json.confidence }}\nResumen del triaje: {{ $('Start').item.json.resumen }}\n\nMensaje original:\n\"{{ $('Start').item.json.mensaje }}\"\n\n👉 Retomar la conversación manualmente. La IA no responde este caso.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        64
+      ],
+      "id": "9b1247f7-9ef7-4b05-b8f3-390a44d9c0a7",
+      "name": "Send a text message",
+      "webhookId": "ef60a023-beae-43ad-9f6a-ac00a3ff8061",
+      "credentials": {
+        "telegramApi": {
+          "id": "pvzefC76KiCQtco6",
+          "name": "leads-coder-100200"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "empresa",
+              "type": "any"
+            },
+            {
+              "name": "email",
+              "type": "any"
+            },
+            {
+              "name": "nombre",
+              "type": "any"
+            },
+            {
+              "name": "resumen",
+              "type": "any"
+            },
+            {
+              "name": "confidence",
+              "type": "any"
+            },
+            {
+              "name": "mensaje",
+              "type": "any"
+            },
+            {
+              "name": "intent",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "3e2c2013-ceaf-43e4-8cad-1bfe0608b95d",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        832,
+        64
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e3d5b58e-569a-45bc-9f01-b657af894b2f",
+  "meta": {
+    "instanceId": "7a51becf30a33c9d819919d5a6f05e14ad6ac05fdecbdfd71880b80bc5cb25d5"
+  },
+  "id": "FXO4aKTWRrYFFFg4",
+  "tags": []
+}

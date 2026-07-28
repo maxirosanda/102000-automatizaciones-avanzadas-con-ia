@@ -1,0 +1,893 @@
+{
+  "name": "Triage Leads",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/obtener-form",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        -192
+      ],
+      "id": "6dc3eb02-2759-4f65-af1a-6d51f9fcbd4d",
+      "name": "Recepcion de formulario",
+      "webhookId": "c8890252-efbd-4bd1-84f0-dcd95068bd15"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e02d1201-71ae-4e2d-95c5-28c3707b8a3b",
+              "name": "empresa",
+              "value": "={{ $json.body.empresa }}",
+              "type": "string"
+            },
+            {
+              "id": "9a37530a-f601-448c-bd0e-79801a492ac2",
+              "name": "nombre",
+              "value": "={{ $json.body.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "4f28726c-ea61-412c-89e4-aa169c36c7bd",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "162d3236-eda4-4131-950b-321dc3a0fe5b",
+              "name": "mensaje",
+              "value": "={{ $json.body.mensaje }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        -192
+      ],
+      "id": "2833dc24-3503-4669-9e20-aae696b35f28",
+      "name": "Sanitizacion de datos"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del lead desde la landing de campaña:\n{{ $json.mensaje }}\n\nDatos del lead: \nnombre:  {{ $json.nombre }}\nempresa: {{ $json.empresa }}\nemail: {{ $json.email }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Sos el recepcionista digital de una agencia de marketing. Clasificá el mensaje del lead en UNA de estas categorías (taxonomía cerrada, NO inventes otras):\n- DEMO: quiere ver el producto en acción o agendar una reunión comercial.\n- INFO: pide información general, contenido (ebook/webinar) o precios.\n- PRENSA: medios, partnerships, invitaciones a eventos.\n- OTROS: cualquier cosa que no encaje en las anteriores o sea ambigua.\n\nDevolvé además: confidence (número entre 0 y 1 con tu nivel de certeza) y resumen (una sola frase con lo que pide el lead).\nSi el mensaje es ambiguo o mezcla temas, usá OTROS con confidence baja. Respondé únicamente con el JSON pedido.\nSi la clasificacion es \"OTROS\" usa un confidence baja"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        272,
+        -192
+      ],
+      "id": "970f203a-983c-427e-9eef-cc10b765cb6a",
+      "name": "Procesamiento de Lead"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": { \"type\": \"string\", \"enum\": [\"DEMO\", \"INFO\", \"PRENSA\", \"OTROS\"] },\n    \"confidence\": { \"type\": \"number\" },\n    \"resumen\": { \"type\": \"string\" }\n  },\n  \"required\": [\"intent\", \"confidence\", \"resumen\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        16
+      ],
+      "id": "2044a11e-d9c5-40cc-955b-b2c899f3da4e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "59d40833-4059-426e-9918-1c306aac9ca7",
+              "name": "intent",
+              "value": "={{ $json.output.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "7df45c5e-f3dd-4f72-a981-f453b82f3690",
+              "name": "confidence",
+              "value": "={{ $json.output.confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "e2a69efa-a6a9-4136-8f89-fcb9ef748919",
+              "name": "resumen",
+              "value": "={{ $json.output.resumen }}",
+              "type": "string"
+            },
+            {
+              "id": "f3e18351-d61c-45ea-9aaf-91262c07682f",
+              "name": "empresa",
+              "value": "={{ $('Sanitizacion de datos').item.json.empresa }}",
+              "type": "string"
+            },
+            {
+              "id": "bfc7a266-8ec1-473a-bee4-6ecfeaf4b79c",
+              "name": "nombre",
+              "value": "={{ $('Sanitizacion de datos').item.json.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "bf92e60f-ac76-4afd-96cc-53829c470f0e",
+              "name": "email",
+              "value": "={{ $('Sanitizacion de datos').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "9a58334c-6369-4dcf-9ca5-30203b309aa9",
+              "name": "mensaje",
+              "value": "={{ $('Sanitizacion de datos').item.json.mensaje }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -192
+      ],
+      "id": "9eb86a3c-e3a9-4fdb-8868-738fdc3dff5a",
+      "name": "Contexto compartido"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3b33a510-1b69-4832-a49d-29b0f107936f",
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": 0.7,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        -192
+      ],
+      "id": "f2b917d8-77ff-4c3f-ad34-cfefe61dc57c",
+      "name": "Confident seguro"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "FXO4aKTWRrYFFFg4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/FXO4aKTWRrYFFFg4",
+          "cachedResultName": "Derivar Lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "empresa": "={{ $('Contexto compartido').item.json.empresa }}",
+            "email": "={{ $('Contexto compartido').item.json.email }}",
+            "nombre": "={{ $('Contexto compartido').item.json.nombre }}",
+            "resumen": "={{ $('Contexto compartido').item.json.resumen }}",
+            "confidence": "={{ $('Contexto compartido').item.json.confidence }}",
+            "mensaje": "={{ $('Contexto compartido').item.json.mensaje }}",
+            "intent": "={{ $('Contexto compartido').item.json.intent }}"
+          },
+          "matchingColumns": [
+            "empresa",
+            "email",
+            "nombre",
+            "resumen",
+            "confidence",
+            "mensaje",
+            "intent"
+          ],
+          "schema": [
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "resumen",
+              "displayName": "resumen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "intent",
+              "displayName": "intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        240
+      ],
+      "name": "Call Derivar Lead",
+      "id": "0388397e-f6c3-49bf-95b7-a3693e355183"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI",
+          "mode": "list",
+          "cachedResultName": "Leads clase 4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 991225490,
+          "mode": "list",
+          "cachedResultName": "Registrar Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit#gid=991225490"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Contexto compartido').item.json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -288
+      ],
+      "id": "f10075d7-75c4-4944-a0ba-19359c9b203c",
+      "name": "Buscar lead en base",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G3570pPLQL2svNnW",
+          "name": "coder 100200"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        16
+      ],
+      "id": "b77e8dba-4580-4ac8-8826-c30f3486b8b0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LuooV6KczJJjJJiz",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d44a3141-6e67-42c7-9c68-6c965a456655",
+              "leftValue": "={{ $json.row_number }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        -288
+      ],
+      "id": "194aa687-025e-4a2e-a4b2-1174c6dffd11",
+      "name": "Lead existe?"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI",
+          "mode": "list",
+          "cachedResultName": "Leads clase 4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 991225490,
+          "mode": "list",
+          "cachedResultName": "Registrar Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit#gid=991225490"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "empresa": "={{ $('Contexto compartido').item.json.empresa }}",
+            "email": "={{ $('Contexto compartido').item.json.email }}",
+            "nombre": "={{ $('Contexto compartido').item.json.nombre }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -112
+      ],
+      "id": "ee68b395-3f21-4a32-9ae5-072be1f3ba26",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G3570pPLQL2svNnW",
+          "name": "coder 100200"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI",
+          "mode": "list",
+          "cachedResultName": "Leads clase 4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 991225490,
+          "mode": "list",
+          "cachedResultName": "Registrar Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/146_8Qh2_Dm0jJ7K1bLp9VGKkPstZr3tgsiR_aX23USI/edit#gid=991225490"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $json.email }}",
+            "nombre": "={{ $('Contexto compartido').item.json.nombre }}",
+            "empresa": "={{ $('Contexto compartido').item.json.empresa }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -352
+      ],
+      "id": "83d1dd36-869a-4df3-a9ff-19388640febc",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G3570pPLQL2svNnW",
+          "name": "coder 100200"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "90725e18-0603-4092-983b-f5e3508a8042",
+          "mode": "list",
+          "cachedResultName": "Plantillas de Campaña",
+          "cachedResultUrl": "https://app.notion.com/p/90725e1806034092983bf5e3508a8042"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Intent|select",
+              "condition": "equals",
+              "selectValue": "DEMO"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1888,
+        -224
+      ],
+      "id": "92fd3824-d712-4d7e-a872-854d15a35aa0",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "GxP8HJ3rrAPtUvQg",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Datos del lead:\n- Nombre: {{ $('Contexto compartido').item.json.nombre }}\n- Empresa: {{ $('Contexto compartido').item.json.empresa }}\n- Intención detectada: {{ $('Contexto compartido').item.json.intent }}\n- Resumen del triaje: {{ $('Contexto compartido').item.json.resumen }}\n- Mensaje original: {{ $('Contexto compartido').item.json.mensaje }}\n\nPlantilla de campaña (desde Notion):\n- Asunto base: {{ $json.property_asunto }}\n- Cuerpo base: {{ $json.property_plantilla }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Sos el redactor de nurturing de una agencia de marketing. Recibís una plantilla-marco desde Notion (estructura y reglas del email), los datos del lead y su mensaje original con el resumen del triaje. Tu tarea: redactar el email siguiendo la estructura y las reglas de la plantilla, respondiendo puntualmente a lo que pidió el lead. Prohibido: prometer precios, descuentos o funcionalidades; inventar enlaces o datos que no estén en la plantilla. Los placeholders tipo [LINK-...] se copian tal cual, sin inventarles URL. Tono profesional y cercano. Respondé únicamente con el JSON pedido (asunto y cuerpo)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2096,
+        -224
+      ],
+      "id": "665822cd-355a-4d8e-bbe1-2514f403317a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2032,
+        0
+      ],
+      "id": "2540d740-888d-4f98-931c-a2e5f3b14f7a",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "LuooV6KczJJjJJiz",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"asunto\": { \"type\": \"string\" },\n    \"cuerpo\": { \"type\": \"string\" }\n  },\n  \"required\": [\"asunto\", \"cuerpo\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2272,
+        -16
+      ],
+      "id": "98184450-89e0-4a22-816d-d517c761ad28",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.output.asunto }}",
+        "emailType": "html",
+        "message": "={{ $json.output.cuerpo }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        -224
+      ],
+      "id": "6a696530-2490-4a92-9ae9-d993d6129382",
+      "name": "borrador mail al lead",
+      "webhookId": "b2f944e8-77ab-474b-b794-f7b1d77847dd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "18hPKFirZajVtEGo",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "REEMPLAZAR_CHAT_ID",
+        "text": "=✅ Lead procesado: {{ $('Contexto compartido').item.json.nombre }}\nIntención:{{ $('Contexto compartido').item.json.intent }}  — confianza {{ $('Contexto compartido').item.json.confidence }}\n📩 Borrador de nurturing listo en Gmail para revisión humana.",
+        "additionalFields": {}
+      },
+      "id": "ada6148b-4210-4ea8-b7df-cdb89159477c",
+      "name": "Alerta Telegram al equipo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2672,
+        -224
+      ],
+      "webhookId": "3d165e6b-35d8-4cdb-8cee-c2672bb4f41a",
+      "credentials": {
+        "telegramApi": {
+          "id": "pvzefC76KiCQtco6",
+          "name": "leads-coder-100200"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Recepcion de formulario": {
+      "main": [
+        [
+          {
+            "node": "Sanitizacion de datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizacion de datos": {
+      "main": [
+        [
+          {
+            "node": "Procesamiento de Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Procesamiento de Lead",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesamiento de Lead": {
+      "main": [
+        [
+          {
+            "node": "Contexto compartido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto compartido": {
+      "main": [
+        [
+          {
+            "node": "Confident seguro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confident seguro": {
+      "main": [
+        [
+          {
+            "node": "Buscar lead en base",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Derivar Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Procesamiento de Lead",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar lead en base": {
+      "main": [
+        [
+          {
+            "node": "Lead existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead existe?": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "borrador mail al lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "borrador mail al lead": {
+      "main": [
+        [
+          {
+            "node": "Alerta Telegram al equipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "49d11417-2d74-406a-9218-7d7490a01510",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a51becf30a33c9d819919d5a6f05e14ad6ac05fdecbdfd71880b80bc5cb25d5"
+  },
+  "id": "Wz3xkdQlzUhqVz9E",
+  "tags": []
+}

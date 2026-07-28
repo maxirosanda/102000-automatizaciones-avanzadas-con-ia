@@ -1,0 +1,630 @@
+{
+  "name": "manager clase 3",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1664,
+        320
+      ],
+      "id": "0e49bb28-fb96-4ee2-ab43-998715e12091",
+      "name": "When chat message received",
+      "webhookId": "85eef4ae-913b-4bcb-a0b2-b601cfc3de58"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "38rl1RiNQxL3hYjN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/38rl1RiNQxL3hYjN",
+          "cachedResultName": "Guardrail de entrada"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatInput": "={{ $json.chatInput }}"
+          },
+          "matchingColumns": [
+            "chatInput"
+          ],
+          "schema": [
+            {
+              "id": "chatInput",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1552,
+        32
+      ],
+      "name": "Call Guardrail de entrada",
+      "id": "eeafa366-a38e-4258-9a7a-5622b8d3be2a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('When chat message received').item.json.chatInput }}\nDevolve unicamente el JSON del plan.",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente manager de una automatización de atención al cliente. Tu única función es analizar el mensaje del cliente y derivar la tarea al agente trabajador especializado correspondiente.\n\nNo debés responder la consulta del cliente ni resolverla. Solo debés clasificarla.\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el cliente pregunte o necesite información relacionada con:\n\n* Productos\n* Precios\n* Talles\n* Colores\n* Stock o disponibilidad\n* Características de productos\n* Recomendaciones de productos\n* Comparaciones entre productos\n* Intención de compra\n* Medios de pago\n* Promociones o descuentos\n* Información previa a realizar una compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el cliente pregunte o necesite ayuda relacionada con una compra ya realizada o con la atención posterior a la compra:\n\n* Estado de un pedido\n* Seguimiento de un envío\n* Problemas con una entrega\n* Cambios\n* Devoluciones\n* Reclamos\n* Producto defectuoso o incorrecto\n* Problemas con una compra realizada\n* Garantías\n* Reembolsos\n* Cancelación de pedidos\n* Cualquier problema ocurrido después de la compra\n\n# Reglas de clasificación\n\n1. Si el cliente quiere comprar, conocer un producto o consultar información antes de comprar, clasificá como `venta`.\n2. Si el cliente ya realizó una compra o tiene un problema relacionado con una compra existente, clasificá como `postventa`.\n3. Si el mensaje contiene varias consultas, clasificá según el objetivo principal de la consulta.\n4. Si el cliente pregunta por un cambio o devolución de una compra ya realizada, clasificá como `postventa`.\n5. Si el cliente pregunta por un producto y todavía no realizó una compra, clasificá como `venta`.\n6. Si el mensaje es un saludo o una consulta general sin suficiente contexto para determinar la intención, clasificá como `venta`.\n7. No inventes categorías adicionales.\n8. No respondas al cliente.\n9. No agregues explicaciones.\n10. Tu respuesta debe ser exclusivamente un JSON válido.\n\n# Formato de salida obligatorio\n\nPara consultas de ventas:\n\n{\"tarea\":\"venta\"}\n\nPara consultas de postventa:\n\n{\"tarea\":\"postventa\"}\n\n# Ejemplos\n\nCliente: \"¿Cuánto sale la remera negra?\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"¿Qué talles tienen disponibles?\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"Quiero comprar una campera.\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"¿Dónde está mi pedido?\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Quiero cambiar el talle de la campera que compré.\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Me llegó un producto equivocado.\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Hola, ¿cómo están?\"\nSalida:\n{\"tarea\":\"venta\"}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1168,
+        320
+      ],
+      "id": "eeda96f5-f164-47cf-ae26-57f33b4a5c14",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1168,
+        560
+      ],
+      "id": "4dbde92d-4acf-4bee-a94f-d81cd626b298",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wAQYaq4wWg85T3HB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}-manager",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -1008,
+        560
+      ],
+      "id": "c2493ac6-8996-4b17-8fb2-982e57c125a4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        320
+      ],
+      "id": "d44c8ec1-17f6-4897-a248-eaee0c9ce9a9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tarea }}",
+                    "rightValue": "postventa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b8743567-80db-413b-a5a0-08eb92712456"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Postventa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5b98dac7-8a3f-4363-abc5-1076f0616f41",
+                    "leftValue": "={{ $json.tarea }}",
+                    "rightValue": "venta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Venta"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        320
+      ],
+      "id": "8c7bc6a8-7c80-44a0-8ccb-4540f2b0a992",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        432
+      ],
+      "id": "2e94bc91-e115-463c-a112-46fb4a1a8ec4",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f1a8ceb8-c036-4db6-a38b-be906dc89725",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        224
+      ],
+      "id": "f5381275-0e61-4b85-ad9f-84378d91cfd0",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wAQYaq4wWg85T3HB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        704
+      ],
+      "id": "b1fe2744-126d-4f7e-898b-ba159556a328",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wAQYaq4wWg85T3HB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}-postventa"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        96,
+        224
+      ],
+      "id": "3b503d17-7825-4173-8175-6aa7a126766a",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}-venta"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        112,
+        720
+      ],
+      "id": "72f4f0ad-2aaf-4845-bb63-7794a8f137cd",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "operation": "sanitize",
+        "text": "={{$json.output}}",
+        "guardrails": {
+          "secretKeys": {
+            "value": {
+              "permissiveness": "strict"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "5a442a4d-5cf5-4ed9-8968-74387d57e644",
+      "name": "Guardrails"
+    },
+    {
+      "parameters": {
+        "operation": "sanitize",
+        "text": "={{$json.output}}",
+        "guardrails": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 2,
+      "position": [
+        320,
+        432
+      ],
+      "id": "06bcf57c-1b38-424f-9a03-4261c9c53f79",
+      "name": "Guardrails1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6JVEVGimcyTQzO",
+          "mode": "list",
+          "cachedResultName": "Memoria Largo plazo",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbl6JVEVGimcyTQzO"
+        },
+        "filterByFormula": "={telefono}='112233344455'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -1408,
+        320
+      ],
+      "id": "1aac0d43-7584-436c-baaa-b99f2df07366",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "iCNHREumcWZ9pil5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "987a43de-b1c2-4192-9838-1721f061db79",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1296,
+        32
+      ],
+      "id": "76ee2ab9-1d10-41c5-9f39-3f029f54422e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n   \"output\":\" {{ $json.output }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1040,
+        16
+      ],
+      "id": "aea1f1f7-accc-458b-b8b6-20370426ff10",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        320
+      ],
+      "id": "213cbd9f-0ae4-4693-86bf-2cfbb0a3463c",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "iCNHREumcWZ9pil5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Guardrails1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e9b34fe0-ee78-4e38-8cbd-7918652b36b4",
+  "meta": {
+    "instanceId": "fec1025b88859b374a1a5edd91c7be4606c82dbf722c8586f16a9738ed649e24"
+  },
+  "nodeGroups": [],
+  "id": "ekwYGIeNIvQh2Cpe",
+  "tags": []
+}

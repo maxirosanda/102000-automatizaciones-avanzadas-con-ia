@@ -1,0 +1,393 @@
+{
+  "name": "Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "692efbf9-8156-41d6-bf0f-2056f508f0aa",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        -352
+      ],
+      "id": "4d6878b3-14d3-4eb1-8199-69c7610aee4b",
+      "name": "Webhook",
+      "webhookId": "692efbf9-8156-41d6-bf0f-2056f508f0aa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d88c898f-eeab-4cea-96a7-18e98618cbca",
+              "leftValue": "={{ $json.body.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        -352
+      ],
+      "id": "a773a287-5167-48ac-88aa-32c8e7b0b0bf",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"email\": \"{{ $json.body.email }}\",\n  \"nombre\": \"{{ $json.body.nombre }}\",\n  \"apellido\":\"{{ $json.body.apellido }}\"\n}\n ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        -512
+      ],
+      "id": "4d6802c7-6b39-4c6b-8435-e4004346f10e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EHFlSkvvAnr7J1iC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EHFlSkvvAnr7J1iC",
+          "cachedResultName": "Agendar cliente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body_email": "={{ $json.email }}",
+            "body_nombre": "={{ $json.nombre }}",
+            "body_apellido": "={{ $json.apellido }}"
+          },
+          "matchingColumns": [
+            "body_email",
+            "body_nombre",
+            "body_apellido"
+          ],
+          "schema": [
+            {
+              "id": "body_email",
+              "displayName": "body_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_nombre",
+              "displayName": "body_nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_apellido",
+              "displayName": "body_apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        -512
+      ],
+      "name": "Call Agendar cliente",
+      "id": "8c2136f5-fec7-47c4-9f5d-58e1922e45ea"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"email\": \"{{ $json.body.email }}\",\n  \"nombre\": \"{{ $json.body.nombre }}\",\n  \"apellido\":\"{{ $json.body.apellido }}\"\n}\n ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        -304
+      ],
+      "id": "c2ce67f2-0424-4e95-9a55-14d1f282a7f5",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EHFlSkvvAnr7J1iC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EHFlSkvvAnr7J1iC",
+          "cachedResultName": "Agendar cliente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body_email": "={{ $json.email }}",
+            "body_nombre": "={{ $json.nombre }}",
+            "body_apellido": "={{ $json.apellido }}"
+          },
+          "matchingColumns": [
+            "body_email",
+            "body_nombre",
+            "body_apellido"
+          ],
+          "schema": [
+            {
+              "id": "body_email",
+              "displayName": "body_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_nombre",
+              "displayName": "body_nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_apellido",
+              "displayName": "body_apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -304
+      ],
+      "name": "Call Agendar cliente1",
+      "id": "bf77b2dc-c499-4f61-9c90-8503ad53f5f9"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "62FtW2DwOVhcNP53",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/62FtW2DwOVhcNP53",
+          "cachedResultName": "Enviar email mejorado con ia"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body_apellido": "={{ $json.apellido }}",
+            "body_message": "={{ $json.message }}",
+            "body_nombre": "={{ $json.nombre }}",
+            "body_email": "={{ $json.email }}"
+          },
+          "matchingColumns": [
+            "body_apellido",
+            "body_message",
+            "body_nombre",
+            "body_email"
+          ],
+          "schema": [
+            {
+              "id": "body_apellido",
+              "displayName": "body_apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_message",
+              "displayName": "body_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_nombre",
+              "displayName": "body_nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body_email",
+              "displayName": "body_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        -304
+      ],
+      "name": "Call Enviar email mejorado con ia",
+      "id": "d2538348-b06d-4cc4-954a-990e66bcbed2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"email\": \" {{ $('Webhook').item.json.body.email }}\",\n  \"nombre\": \"{{ $('Webhook').item.json.body.nombre }}\",\n\"apellido\":\"{{ $('Webhook').item.json.body.apellido }}\",\n\"message\":\"{{ $('Webhook').item.json.body.message }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -304
+      ],
+      "id": "4a55562c-9977-4e7a-b207-1b6d18beb636",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call Agendar cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Call Agendar cliente1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Agendar cliente1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Call Enviar email mejorado con ia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6bc5d56b-9752-4eb5-82e3-39fc66f29144",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fec1025b88859b374a1a5edd91c7be4606c82dbf722c8586f16a9738ed649e24"
+  },
+  "nodeGroups": [],
+  "id": "1UQBGzwRb1pNuBgT",
+  "tags": []
+}

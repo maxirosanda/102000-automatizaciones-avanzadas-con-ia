@@ -1,0 +1,203 @@
+{
+  "name": "Enviar email mejorado con ia",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=\nEres un copywriter experto en email marketing para una dietética premium y también un desarrollador especializado en emails HTML compatibles con Gmail, Outlook y clientes de correo.\n\nRecibirás tres datos:\n\n- nombre: {{$('Start').item.json.body_nombre  }}\n- apellido: {{ $('Start').item.json.body_apellido }}\n- mensaje: {{ $('Start').item.json.body_message }}\n\nTu tarea es:\n\n1. Analizar el mensaje original.\n2. Reescribirlo para que sea mucho más profesional, cálido, cercano y persuasivo, sin cambiar su intención.\n3. Personalizar el saludo utilizando el nombre y apellido.\n4. Generar un email completo en HTML.\n\n## Estética\n\nEl diseño debe inspirarse en una dietética premium con una estética similar a la referencia proporcionada.\n\nCaracterísticas visuales:\n\n- Diseño elegante y moderno.\n- Mucho espacio en blanco.\n- Colores naturales.\n- Fondo blanco (#FFFFFF).\n- Verde oliva (#6B8E23 o similar).\n- Marrones suaves que recuerden al cacao, café y madera.\n- Detalles en beige y crema.\n- Tipografía limpia (Arial, Helvetica o sans-serif).\n- Bordes redondeados.\n- Botones verdes.\n- Apariencia artesanal y natural.\n- Sensación de producto saludable y premium.\n- Minimalista, sin excesos.\n\nEl resultado debe transmitir:\n\n- confianza\n- alimentación saludable\n- productos naturales\n- calidad premium\n- cercanía\n\n## Estructura\n\nCrear un email con:\n\n- Encabezado elegante\n- Saludo personalizado\n- Cuerpo del mensaje mejorado\n- Llamado a la acción si corresponde\n- Firma cordial\n\n## HTML\n\nEl HTML debe:\n\n- Ser completo.\n- Utilizar únicamente HTML con estilos inline.\n- No usar JavaScript.\n- No usar CSS externo.\n- Compatible con Gmail.\n- Compatible con Outlook.\n- Responsive mediante tablas.\n- Máximo ancho de 600px.\n- Centrado.\n- Fondo gris muy claro y tarjeta blanca.\n- Botón con hover opcional (si no es posible, dejar botón simple).\n\n## Restricciones\n\n- No inventar información.\n- No agregar promociones inexistentes.\n- No agregar descuentos si no fueron mencionados.\n- Mantener el tono amable y profesional.\n\n## Salida\n\nDevuelve EXCLUSIVAMENTE el HTML.\n\nNo escribas explicaciones.\n\nNo uses Markdown.\n\nNo coloques ```html.\n\nSolo el código HTML."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        -304
+      ],
+      "id": "fb14b4dc-6908-40cd-ae47-aa844ccd667b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wAQYaq4wWg85T3HB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Start').item.json.body_email }}",
+        "subject": "Nuevas promos dietetica callao",
+        "message": "={{ $json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -352
+      ],
+      "id": "b6113164-0583-44d7-b93a-5956cfffbfe7",
+      "name": "Send a message",
+      "webhookId": "e88fe8e1-f7bd-4170-8f65-ecc42731a38e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SUtKFjtU0CrR7Ibt",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "body_apellido",
+              "type": "any"
+            },
+            {
+              "name": "body_message",
+              "type": "any"
+            },
+            {
+              "name": "body_nombre",
+              "type": "any"
+            },
+            {
+              "name": "body_email",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "ce1be60d-3774-425d-937e-edcbd01e020d",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        384,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"error\",\n  \"mensaje\": \"fallo al conectarme a la ia\",\n  \"data\":\"\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        -96
+      ],
+      "id": "19b91631-8063-4711-90cf-8a1a113f87d8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"exitoso\",\n  \"mensaje\": \"email enviado correctamente\",\n  \"data\":\"\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        -416
+      ],
+      "id": "30ebd1f9-1a0f-4dcc-b734-da5c2b7dcbe7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"error\",\n  \"mensaje\": \"fallo al enviar el email\",\n  \"data\":\"\"\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        -192
+      ],
+      "id": "f1a1c2d3-2a6e-4719-ae56-4f86262c56ea",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b393f81c-785d-4848-8b2a-3fabbf062d33",
+  "meta": {
+    "instanceId": "fec1025b88859b374a1a5edd91c7be4606c82dbf722c8586f16a9738ed649e24"
+  },
+  "nodeGroups": [],
+  "id": "62FtW2DwOVhcNP53",
+  "tags": []
+}

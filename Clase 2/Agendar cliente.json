@@ -1,0 +1,353 @@
+{
+  "name": "Agendar cliente",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE",
+          "mode": "list",
+          "cachedResultName": "clase 2 102000",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.body_email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -576
+      ],
+      "id": "d2a55654-a32d-4f8b-92d4-63ba14820e29",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7fMfYXpZgyKN3gXB",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5c40863-fa07-442b-a98f-f6b51b0a401c",
+              "leftValue": "={{$json}}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        -640
+      ],
+      "id": "6fc939cc-a024-4afb-b854-a300dc9453bf",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE",
+          "mode": "list",
+          "cachedResultName": "clase 2 102000",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nWYXMLgqa-WX97HvuAwBuVRP0JhIRmQT0sHpxJZcAkE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $('Start').item.json.body_email }}",
+            "nombre": "={{ $('Start').item.json.body_nombre }}",
+            "apellido": "={{ $('Start').item.json.body_apellido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apellido",
+              "displayName": "apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        992,
+        -688
+      ],
+      "id": "14a0f673-f22c-4276-9ad2-d41d56abe5a1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7fMfYXpZgyKN3gXB",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "body_email",
+              "type": "any"
+            },
+            {
+              "name": "body_nombre",
+              "type": "any"
+            },
+            {
+              "name": "body_apellido",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "5f130e47-81ac-49b1-bcd6-9c9836c2d4a8",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        208,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"error\",\n  \"menssage\": \"error al conectarse con google sheet\",\n  \"data\":\"\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        -304
+      ],
+      "id": "354c6bfc-4307-46d8-96a4-9f50956ffa68",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"error\",\n  \"menssage\": \"el usuario ya estabaagendado\",\n  \"data\":\"\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        -496
+      ],
+      "id": "f960c036-a71c-4b6e-b548-73bfd5a0a584",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"estado\": \"exitoso\",\n  \"menssage\": \"se guardo el cliente en google sheet\",\n  \"data\":\"\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        -704
+      ],
+      "id": "f23e351f-686f-4170-a039-72929776f9df",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "content": "#Entrada\n{\n\"email\": \"maxi_rosanda@hotmail.com\",\n\"nombre\": \"maxi\",\n\"apellido\": \"rosanda\"\n}\n\n",
+        "height": 224,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        -800
+      ],
+      "typeVersion": 1,
+      "id": "1dff2604-091d-4981-82e7-568255bc3e0b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "#Salida\n{\n  \"estado\": \"exitoso\",\n  \"menssage\": \"se guardo el cliente en google sheet\",\n  \"data\":\"\"\n}\n",
+        "height": 208,
+        "width": 416
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1232,
+        -976
+      ],
+      "typeVersion": 1,
+      "id": "a874b95b-eba1-496c-9155-94194d7050b4",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "email": "maxi_rosanda@hotmail.com",
+          "nombre": "maxi",
+          "apellido": "rosanda"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f9fffa1e-6578-408b-bea9-92f47440bca2",
+  "meta": {
+    "instanceId": "fec1025b88859b374a1a5edd91c7be4606c82dbf722c8586f16a9738ed649e24"
+  },
+  "nodeGroups": [],
+  "id": "EHFlSkvvAnr7J1iC",
+  "tags": []
+}

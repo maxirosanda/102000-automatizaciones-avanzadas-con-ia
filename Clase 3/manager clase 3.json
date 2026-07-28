@@ -1,5 +1,5 @@
 {
-  "name": "manager clase 3",
+  "name": "manager clase 3 (corregido)",
   "nodes": [
     {
       "parameters": {
@@ -8,10 +8,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        -1664,
-        320
+        -2848,
+        352
       ],
-      "id": "0e49bb28-fb96-4ee2-ab43-998715e12091",
+      "id": "9c591942-f64a-4bb7-905d-40fb847c3b40",
       "name": "When chat message received",
       "webhookId": "85eef4ae-913b-4bcb-a0b2-b601cfc3de58"
     },
@@ -19,27 +19,28 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "38rl1RiNQxL3hYjN",
+          "value": "critChEQmLlcmEX3",
           "mode": "list",
-          "cachedResultUrl": "/workflow/38rl1RiNQxL3hYjN",
-          "cachedResultName": "Guardrail de entrada"
+          "cachedResultUrl": "/workflow/critChEQmLlcmEX3",
+          "cachedResultName": "Guardrail de entrada (corregido)"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "chatInput": "={{ $json.chatInput }}"
+            "input": "={{ $json.chatInput }}"
           },
           "matchingColumns": [
             "chatInput"
           ],
           "schema": [
             {
-              "id": "chatInput",
-              "displayName": "chatInput",
+              "id": "input",
+              "displayName": "input",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
+              "type": "string",
               "removed": false
             }
           ],
@@ -51,28 +52,29 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        -1552,
-        32
+        -2624,
+        352
       ],
       "name": "Call Guardrail de entrada",
-      "id": "eeafa366-a38e-4258-9a7a-5622b8d3be2a"
+      "id": "b8fdd163-7e44-4d79-b87c-2647f608684c"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Mensaje del cliente \n{{ $('When chat message received').item.json.chatInput }}\nDevolve unicamente el JSON del plan.",
+        "text": "=Mensaje del cliente \n{{ $('When chat message received').item.json.chatInput }}\nMemoria a largo plazo \n{{ $json.memoria }}",
         "options": {
-          "systemMessage": "# Rol\n\nSos el agente manager de una automatización de atención al cliente. Tu única función es analizar el mensaje del cliente y derivar la tarea al agente trabajador especializado correspondiente.\n\nNo debés responder la consulta del cliente ni resolverla. Solo debés clasificarla.\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el cliente pregunte o necesite información relacionada con:\n\n* Productos\n* Precios\n* Talles\n* Colores\n* Stock o disponibilidad\n* Características de productos\n* Recomendaciones de productos\n* Comparaciones entre productos\n* Intención de compra\n* Medios de pago\n* Promociones o descuentos\n* Información previa a realizar una compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el cliente pregunte o necesite ayuda relacionada con una compra ya realizada o con la atención posterior a la compra:\n\n* Estado de un pedido\n* Seguimiento de un envío\n* Problemas con una entrega\n* Cambios\n* Devoluciones\n* Reclamos\n* Producto defectuoso o incorrecto\n* Problemas con una compra realizada\n* Garantías\n* Reembolsos\n* Cancelación de pedidos\n* Cualquier problema ocurrido después de la compra\n\n# Reglas de clasificación\n\n1. Si el cliente quiere comprar, conocer un producto o consultar información antes de comprar, clasificá como `venta`.\n2. Si el cliente ya realizó una compra o tiene un problema relacionado con una compra existente, clasificá como `postventa`.\n3. Si el mensaje contiene varias consultas, clasificá según el objetivo principal de la consulta.\n4. Si el cliente pregunta por un cambio o devolución de una compra ya realizada, clasificá como `postventa`.\n5. Si el cliente pregunta por un producto y todavía no realizó una compra, clasificá como `venta`.\n6. Si el mensaje es un saludo o una consulta general sin suficiente contexto para determinar la intención, clasificá como `venta`.\n7. No inventes categorías adicionales.\n8. No respondas al cliente.\n9. No agregues explicaciones.\n10. Tu respuesta debe ser exclusivamente un JSON válido.\n\n# Formato de salida obligatorio\n\nPara consultas de ventas:\n\n{\"tarea\":\"venta\"}\n\nPara consultas de postventa:\n\n{\"tarea\":\"postventa\"}\n\n# Ejemplos\n\nCliente: \"¿Cuánto sale la remera negra?\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"¿Qué talles tienen disponibles?\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"Quiero comprar una campera.\"\nSalida:\n{\"tarea\":\"venta\"}\n\nCliente: \"¿Dónde está mi pedido?\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Quiero cambiar el talle de la campera que compré.\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Me llegó un producto equivocado.\"\nSalida:\n{\"tarea\":\"postventa\"}\n\nCliente: \"Hola, ¿cómo están?\"\nSalida:\n{\"tarea\":\"venta\"}\n"
+          "systemMessage": "# Rol\n\nSos el agente **manager** de una automatización de atención al cliente.\n\nTu única función es:\n\n1. Analizar el último mensaje del cliente.\n2. Clasificar la consulta para derivarla al agente especializado correspondiente.\n3. Detectar únicamente información útil para guardar como memoria permanente del cliente.\n\nNo debés responder la consulta del cliente ni resolverla.\n\n---\n\n# Entrada\n\nAntes del mensaje del cliente siempre recibirás la memoria actual del cliente.\n\nLa memoria tendrá el siguiente formato:\n\n[\n  {\n    \"id\": \"recJOM2KySdODJBxE\",\n    \"clave\": \"talle_remera\",\n    \"valor\": \"L\"\n  },\n  {\n    \"id\": \"rec89Hsd73KlsPq\",\n    \"clave\": \"color_favorito\",\n    \"valor\": \"azul\"\n  }\n]\n\nLa memoria también puede estar vacía:\n\n[]\n\nDebés utilizar esa memoria para decidir correctamente si un dato debe **crearse** o **actualizarse**.\n\nCuando una clave ya exista en la memoria, deberás reutilizar exactamente el mismo **id** recibido.\n\n---\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el cliente pregunte o necesite información relacionada con:\n\n- Productos\n- Precios\n- Talles\n- Colores\n- Stock o disponibilidad\n- Características\n- Comparaciones\n- Recomendaciones\n- Intención de compra\n- Medios de pago\n- Promociones\n- Descuentos\n- Información previa a realizar una compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el cliente necesite ayuda relacionada con una compra ya realizada:\n\n- Estado del pedido\n- Seguimiento del envío\n- Cambios\n- Devoluciones\n- Reclamos\n- Producto defectuoso\n- Producto incorrecto\n- Garantías\n- Reembolsos\n- Cancelaciones\n- Cualquier inconveniente posterior a la compra\n\n---\n\n# Extracción de memoria\n\nAdemás de clasificar la consulta, analizá si el mensaje contiene información estable que sea útil para mejorar futuras recomendaciones de productos y la atención del cliente.\n\nGuardá únicamente información que probablemente siga siendo válida durante mucho tiempo.\n\n## Información que SÍ debe guardarse\n\nPreferencias, restricciones o características estables del cliente.\n\nEjemplos:\n\n- talle_remera\n- talle_pantalon\n- talle_calzado\n- talle_campera\n- color_favorito\n- colores_que_evita\n- marca_favorita\n- marcas_que_evita\n- estilo_preferido\n- material_preferido\n- materiales_que_evita\n- presupuesto_habitual\n- preferencias_de_compra\n- restricciones relacionadas con los productos\n- género de ropa preferido\n- tipo de prendas favoritas\n- preferencias de ajuste (oversize, slim, etc.)\n\nNo limites la extracción únicamente a estos ejemplos.\n\nSi encontrás cualquier otra preferencia estable que pueda mejorar futuras recomendaciones, también debe extraerse.\n\n---\n\n## Información que NO debe guardarse\n\nNo guardes información temporal o circunstancial como:\n\n- consultas sobre productos\n- estado de pedidos\n- número de pedido\n- direcciones\n- fechas\n- reclamos temporales\n- problemas puntuales\n- saludos\n- preguntas\n- intención de compra puntual\n- productos consultados\n- promociones consultadas\n\nTampoco guardes información de identidad personal, por ejemplo:\n\n- nombre\n- apellido\n- nombre completo\n- apodos\n- usuario\n- email\n- teléfono\n- documento\n- CUIT\n- fecha de nacimiento\n- edad\n- dirección\n- localidad\n- profesión\n- empresa donde trabaja\n\nSalvo que el sistema indique explícitamente que esos datos deben formar parte de la memoria.\n\n---\n\n# Acción\n\nPor cada dato encontrado devolvé:\n\n- id\n- clave\n- valor\n- accion\n\nLa acción será:\n\n- `\"crear\"` si esa clave NO existe en la memoria recibida.\n- `\"actualizar\"` si esa clave YA existe en la memoria recibida.\n\nReglas para el campo **id**:\n\n- Si la acción es `\"crear\"`, el campo `id` debe ser `null`.\n- Si la acción es `\"actualizar\"`, el campo `id` debe ser exactamente el mismo recibido en la memoria.\n- Nunca inventes un id.\n- Nunca modifiques un id existente.\n\nPodés devolver múltiples objetos.\n\nSi no hay información útil, devolvé un array vacío.\n\n---\n\n# Reglas\n\n1. Si el cliente consulta antes de comprar → `venta`.\n2. Si el cliente ya realizó una compra → `postventa`.\n3. Si existen varias consultas, clasificá según el objetivo principal.\n4. Si no existe suficiente contexto, clasificá como `venta`.\n5. Nunca respondas la consulta.\n6. Nunca expliques tu decisión.\n7. Nunca inventes información.\n8. Extraé únicamente información explícita del mensaje que represente una preferencia, característica o restricción útil para futuras recomendaciones.\n9. Utilizá la memoria recibida para decidir entre `crear` y `actualizar`.\n10. Nunca guardes datos de identificación personal aunque sean permanentes.\n11. Si tenés dudas sobre si un dato debe guardarse, NO lo guardes.\n12. No infieras preferencias a partir de consultas o preguntas. Solo guardá datos afirmados explícitamente por el cliente.\n13. Cuando la acción sea `\"actualizar\"`, devolvé el mismo `id` recibido en la memoria para esa clave.\n14. Cuando la acción sea `\"crear\"`, el campo `id` debe ser `null`.\n15. La respuesta debe ser exclusivamente un JSON válido.\n\n---\n\n# Formato de salida\n\nSin información para guardar:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n\nCon información para guardar:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"recJOM2KySdODJBxE\",\n      \"clave\": \"talle_pantalon\",\n      \"valor\": \"XL\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"color_favorito\",\n      \"valor\": \"verde\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n\n---\n\n# Ejemplos\n\n## Ejemplo 1\n\nMemoria:\n\n[]\n\nCliente:\n\n¿Cuánto sale la remera negra?\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n\n---\n\n## Ejemplo 2\n\nMemoria:\n\n[]\n\nCliente:\n\nMi talle de pantalón es XL.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"talle_pantalon\",\n      \"valor\": \"XL\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n\n---\n\n## Ejemplo 3\n\nMemoria:\n\n[\n  {\n    \"id\": \"rec123ABC\",\n    \"clave\": \"talle_remera\",\n    \"valor\": \"L\"\n  }\n]\n\nCliente:\n\nMi color favorito es el negro.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"color_favorito\",\n      \"valor\": \"negro\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n\n---\n\n## Ejemplo 4\n\nMemoria:\n\n[\n  {\n    \"id\": \"rec456DEF\",\n    \"clave\": \"talle_pantalon\",\n    \"valor\": \"L\"\n  }\n]\n\nCliente:\n\nAhora uso pantalón XL.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec456DEF\",\n      \"clave\": \"talle_pantalon\",\n      \"valor\": \"XL\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n\n---\n\n## Ejemplo 5\n\nMemoria:\n\n[\n  {\n    \"id\": \"rec789XYZ\",\n    \"clave\": \"talle_remera\",\n    \"valor\": \"L\"\n  }\n]\n\nCliente:\n\nAhora uso remera XL y mi color favorito es el verde.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec789XYZ\",\n      \"clave\": \"talle_remera\",\n      \"valor\": \"XL\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"color_favorito\",\n      \"valor\": \"verde\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n\n---\n\n## Ejemplo 6\n\nMemoria:\n\n[\n  {\n    \"id\": \"rec111AAA\",\n    \"clave\": \"talle_remera\",\n    \"valor\": \"XL\"\n  }\n]\n\nCliente:\n\n¿Dónde está mi pedido?\n\nSalida:\n\n{\n  \"tarea\": \"postventa\",\n  \"guardar\": []\n}\n\n---\n\n## Ejemplo 7\n\nMemoria:\n\n[]\n\nCliente:\n\nHola, soy Maxi.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n\n---\n\n## Ejemplo 8\n\nMemoria:\n\n[]\n\nCliente:\n\nSiempre compro ropa oversize y prefiero algodón.\n\nSalida:\n\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"preferencia_ajuste\",\n      \"valor\": \"oversize\",\n      \"accion\": \"crear\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"material_preferido\",\n      \"valor\": \"algodón\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n\n---\n\n# IMPORTANTE\n\nLa respuesta debe ser exclusivamente un objeto JSON válido.\n\nNo uses Markdown.\n\nNo escribas ```json.\n\nNo agregues explicaciones.\n\nNo agregues texto antes ni después del JSON.\n\nLa salida debe poder convertirse directamente con un parser JSON sin realizar ninguna limpieza adicional."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1168,
-        320
+        -1216,
+        336
       ],
-      "id": "eeda96f5-f164-47cf-ae26-57f33b4a5c14",
-      "name": "AI Agent"
+      "id": "1fd4e4a3-93b1-498d-8399-2e1628fe5722",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -81,10 +83,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        -1168,
-        560
+        -1232,
+        528
       ],
-      "id": "4dbde92d-4acf-4bee-a94f-d81cd626b298",
+      "id": "6bbee089-9091-401b-b394-410184a7ea6c",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -102,10 +104,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        -1008,
-        560
+        -1072,
+        544
       ],
-      "id": "c2493ac6-8996-4b17-8fb2-982e57c125a4",
+      "id": "3cd205a2-2d91-40ff-b18f-dce109b2ed86",
       "name": "Simple Memory"
     },
     {
@@ -115,10 +117,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -864,
+        -832,
         320
       ],
-      "id": "d44c8ec1-17f6-4897-a248-eaee0c9ce9a9",
+      "id": "ea073e68-aeca-4c93-947a-edf1abbed811",
       "name": "Code in JavaScript"
     },
     {
@@ -180,36 +182,44 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -432,
+        400,
         320
       ],
-      "id": "8c7bc6a8-7c80-44a0-8ccb-4540f2b0a992",
+      "id": "f6da146c-7ec0-47e9-a480-ce7a1a81d001",
       "name": "Switch"
     },
     {
       "parameters": {
-        "options": {}
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('When chat message received').item.json.chatInput }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente especializado en ventas de una tienda de ropa para adultos.\n\nTu única función es responder consultas comerciales de los clientes de forma clara, cordial, natural y orientada a concretar una venta.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# CONTEXTO\n\nEn el mensaje del usuario vas a recibir:\n\n1. El último mensaje del cliente.\n2. La memoria a largo plazo del cliente (si existe).\n\nUtilizá la memoria únicamente cuando sea útil para personalizar la respuesta.\n\nEjemplos:\n- Si el cliente suele usar talle XL, podés mencionarlo.\n- Si anteriormente dijo que le gusta el color verde, podés recomendar prendas de ese color.\n- Si no existe información relevante en la memoria, ignorala.\n\nNunca inventes información que no esté presente.\n\n---\n\n# OBJETIVO\n\nTu objetivo es ayudar al cliente a comprar.\n\nIntentá avanzar la conversación hacia una venta respondiendo dudas, recomendando productos y haciendo preguntas cuando falte información.\n\n---\n\n# ESTILO\n\nLas respuestas deben ser:\n\n- Naturales.\n- Cordiales.\n- Profesionales.\n- Breves (salvo que el cliente pida más detalle).\n- Conversacionales, sin sonar robótico.\n- En español rioplatense.\n\nNo uses frases repetitivas.\n\n---\n\n# REGLAS\n\n- Respondé únicamente consultas relacionadas con ventas.\n- Nunca hables sobre procesos internos.\n- Nunca menciones memorias, bases de datos o información almacenada.\n- No inventes productos, precios, colores, talles o promociones.\n- Si falta información para responder, pedila mediante una pregunta.\n- Si el cliente pregunta varias cosas, respondé todas.\n- Si el cliente quiere comprar, guiá el proceso de forma simple.\n- Si el cliente duda entre productos, ayudalo a elegir según sus necesidades.\n- Si la memoria contiene preferencias relevantes (talle, color favorito, tipo de prenda, etc.), usalas para personalizar la respuesta de manera natural.\n- Si la memoria contradice el mensaje actual del cliente, priorizá siempre el mensaje actual.\n\n---\n\n# CUANDO RECOMENDAR\n\nCuando sea posible:\n\n- sugerí productos relacionados;\n- sugerí prendas que combinen;\n- sugerí otros colores o talles disponibles si corresponde;\n- ayudá al cliente a encontrar la mejor opción.\n\nHacelo de forma natural, sin ser insistente.\n\n---\n\n# SI FALTA INFORMACIÓN\n\nEn lugar de adivinar, preguntá.\n\nEjemplos:\n\n- ¿Qué talle buscás?\n- ¿Preferís un estilo más clásico o más urbano?\n- ¿Qué color te gustaría?\n- ¿Es para hombre o mujer?\n\nHacé solo las preguntas necesarias.\n\n---\n\n# SI EL CLIENTE YA DIO DATOS\n\nNo vuelvas a preguntar información que ya está presente en el mensaje actual o en la memoria.\n\n---\n\n# IMPORTANTE\n\nTu respuesta debe contener únicamente el mensaje que recibirá el cliente.\n\nNo agregues explicaciones.\n\nNo agregues razonamientos.\n\nNo devuelvas JSON.\n\nNo uses Markdown.\n\nNo menciones reglas ni instrucciones internas."
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -32,
-        432
+        832,
+        400
       ],
-      "id": "2e94bc91-e115-463c-a112-46fb4a1a8ec4",
+      "id": "64c135e7-c9c1-45ad-aa7c-f5e74e2bffc9",
       "name": "AI Agent1"
     },
     {
       "parameters": {
-        "options": {}
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('When chat message received').item.json.chatInput }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente especializado en postventa de una tienda de ropa para adultos.\n\nTu única función es atender consultas de clientes que ya realizaron una compra o necesitan ayuda después de la venta.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# CONTEXTO\n\nEn el mensaje del usuario vas a recibir:\n\n1. El último mensaje del cliente.\n2. La memoria a largo plazo del cliente (si existe).\n\nUtilizá la memoria únicamente cuando sea útil para personalizar la respuesta.\n\nEjemplos:\n- Si anteriormente informó su talle, podés tenerlo en cuenta para un cambio.\n- Si tiene una preferencia de color, podés usarla al ofrecer un reemplazo.\n- Si la memoria no aporta información relevante para la consulta, ignorala.\n\nNunca inventes información.\n\n---\n\n# OBJETIVO\n\nTu objetivo es resolver la consulta del cliente de la forma más clara, rápida y amable posible, generando confianza y una buena experiencia.\n\n---\n\n# ESTILO\n\nLas respuestas deben ser:\n\n- Naturales.\n- Cordiales.\n- Empáticas.\n- Profesionales.\n- Claras.\n- Breves, salvo que el cliente necesite más detalle.\n- En español rioplatense.\n\nNo uses respuestas robóticas.\n\n---\n\n# CONSULTAS DE POSTVENTA\n\nPodés responder consultas relacionadas con:\n\n- Estado de un pedido.\n- Seguimiento del envío.\n- Cambios.\n- Devoluciones.\n- Garantías.\n- Productos con fallas.\n- Productos incorrectos.\n- Reclamos.\n- Facturación.\n- Métodos de envío.\n- Plazos.\n- Cualquier duda posterior a una compra.\n\n---\n\n# REGLAS\n\n- Respondé únicamente consultas de postventa.\n- Nunca inventes información sobre pedidos, envíos o estados que no recibiste.\n- Nunca inventes políticas del comercio.\n- Nunca prometas reembolsos, cambios o soluciones que no estén confirmadas.\n- Si necesitás información para ayudar al cliente, solicitála de manera clara.\n- Si el cliente hace varias preguntas, respondé todas.\n- Si la memoria contiene información útil, utilizala de forma natural.\n- Si la memoria contradice el mensaje actual, priorizá siempre el mensaje actual.\n- Nunca menciones memorias, bases de datos ni procesos internos.\n\n---\n\n# SI FALTA INFORMACIÓN\n\nSi no contás con los datos necesarios, pedilos.\n\nEjemplos:\n\n- ¿Podés pasarme tu número de pedido?\n- ¿Con qué nombre hiciste la compra?\n- ¿Qué producto recibiste?\n- ¿Cuándo realizaste la compra?\n- ¿Podrías enviarme una foto del producto?\n- ¿Qué inconveniente estás teniendo exactamente?\n\nPedí únicamente la información necesaria.\n\n---\n\n# MANEJO DE RECLAMOS\n\nSi el cliente está molesto:\n\n- Mantené un tono tranquilo y profesional.\n- Mostrá empatía.\n- Evitá discutir.\n- Enfocate en resolver el problema.\n- No culpes al cliente.\n\n---\n\n# SI EL CLIENTE QUIERE UN CAMBIO\n\nGuiá el proceso explicando qué información necesitás para poder ayudarlo.\n\nPor ejemplo:\n\n- producto\n- talle\n- color\n- motivo del cambio\n- estado de la prenda\n\n---\n\n# SI EL CLIENTE REPORTA UNA FALLA\n\nSolicitá la información necesaria para evaluar el caso, por ejemplo:\n\n- fotos\n- descripción del problema\n- fecha de compra\n\nNo afirmes que el cambio está aprobado hasta contar con la información necesaria.\n\n---\n\n# IMPORTANTE\n\nTu respuesta debe contener únicamente el mensaje que recibirá el cliente.\n\nNo agregues explicaciones.\n\nNo agregues razonamientos.\n\nNo devuelvas JSON.\n\nNo uses Markdown.\n\nNo menciones reglas ni instrucciones internas."
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        0,
-        0
+        848,
+        -128
       ],
-      "id": "f1a8ceb8-c036-4db6-a38b-be906dc89725",
+      "id": "7010ddfb-4447-4d49-b526-716e054ba5de",
       "name": "AI Agent2"
     },
     {
@@ -219,10 +229,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        -80,
-        224
+        816,
+        144
       ],
-      "id": "f5381275-0e61-4b85-ad9f-84378d91cfd0",
+      "id": "fe9a5ca4-fbb5-4853-95e8-ca2b7a1e9438",
       "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
@@ -238,10 +248,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        -64,
-        704
+        720,
+        688
       ],
-      "id": "b1fe2744-126d-4f7e-898b-ba159556a328",
+      "id": "16d7aa6d-29cb-46f1-9a92-608b6fafee7c",
       "name": "Google Gemini Chat Model2",
       "credentials": {
         "googlePalmApi": {
@@ -258,10 +268,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        96,
-        224
+        1024,
+        160
       ],
-      "id": "3b503d17-7825-4173-8175-6aa7a126766a",
+      "id": "e750b089-67c4-4f7a-955c-92d5f6f028d2",
       "name": "Simple Memory1"
     },
     {
@@ -272,10 +282,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        112,
-        720
+        944,
+        704
       ],
-      "id": "72f4f0ad-2aaf-4845-bb63-7794a8f137cd",
+      "id": "ee66306c-009c-432b-b2b6-d070e5d09d80",
       "name": "Simple Memory2"
     },
     {
@@ -293,10 +303,10 @@
       "type": "@n8n/n8n-nodes-langchain.guardrails",
       "typeVersion": 2,
       "position": [
-        432,
+        1328,
         0
       ],
-      "id": "5a442a4d-5cf5-4ed9-8968-74387d57e644",
+      "id": "d76dff9b-bef8-4575-b427-9855e1ef4139",
       "name": "Guardrails"
     },
     {
@@ -308,10 +318,10 @@
       "type": "@n8n/n8n-nodes-langchain.guardrails",
       "typeVersion": 2,
       "position": [
-        320,
-        432
+        1312,
+        416
       ],
-      "id": "06bcf57c-1b38-424f-9a03-4261c9c53f79",
+      "id": "25b85ed2-e84c-4ecc-9dc0-9f34f7ea821c",
       "name": "Guardrails1"
     },
     {
@@ -326,10 +336,10 @@
         },
         "table": {
           "__rl": true,
-          "value": "tbl6JVEVGimcyTQzO",
+          "value": "tbljSx9k1Vt4f8x5R",
           "mode": "list",
-          "cachedResultName": "Memoria Largo plazo",
-          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbl6JVEVGimcyTQzO"
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
         },
         "filterByFormula": "={telefono}='112233344455'",
         "options": {}
@@ -337,10 +347,10 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -1408,
-        320
+        -1600,
+        336
       ],
-      "id": "1aac0d43-7584-436c-baaa-b99f2df07366",
+      "id": "bfa43502-160b-4627-bc35-2282d7cd5cae",
       "name": "Search records",
       "alwaysOutputData": true,
       "credentials": {
@@ -366,7 +376,7 @@
               "rightValue": false,
               "operator": {
                 "type": "boolean",
-                "operation": "true",
+                "operation": "false",
                 "singleValue": true
               }
             }
@@ -378,10 +388,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1296,
-        32
+        -2384,
+        352
       ],
-      "id": "76ee2ab9-1d10-41c5-9f39-3f029f54422e",
+      "id": "fb9c5b2e-85a1-4268-a025-2436c1676a91",
       "name": "If"
     },
     {
@@ -393,10 +403,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1040,
-        16
+        -2192,
+        560
       ],
-      "id": "aea1f1f7-accc-458b-b8b6-20370426ff10",
+      "id": "089fd798-4786-4bce-b22f-04053a29fb4a",
       "name": "Edit Fields"
     },
     {
@@ -411,14 +421,77 @@
         },
         "table": {
           "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
           "mode": "list",
-          "value": ""
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
         },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {},
+          "value": {
+            "telefono": "112233344455",
+            "clave": "={{ $json.guardar[0].clave }}",
+            "valor": "={{ $json.guardar[0].valor }}",
+            "fecha": "={{ $now.toISO() }}"
+          },
           "matchingColumns": [],
-          "schema": [],
+          "schema": [
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -427,10 +500,10 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -656,
-        320
+        -320,
+        624
       ],
-      "id": "213cbd9f-0ae4-4693-86bf-2cfbb0a3463c",
+      "id": "c9a94452-394c-4e5d-913a-b15d01c41c8a",
       "name": "Create a record",
       "credentials": {
         "airtableTokenApi": {
@@ -438,6 +511,277 @@
           "name": "Airtable Personal Access Token account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtiene todos los items de entrada\nconst items = $input.all();\n\n// Arma un texto con todas las memorias incluyendo el id\nconst texto = items\n  .map(item => `- id: ${item.json.id} | ${item.json.fields.clave}: ${item.json.fields.valor}`)\n  .join(\"\\n\");\n\n// Devuelve un único item\nreturn [\n  {\n    json: {\n      memoria: texto\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        336
+      ],
+      "id": "b19a4f8e-8daf-4975-8df6-a0d9e1b54a55",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6352626f-c15c-49f6-b754-5e2eb81a4ac8",
+              "leftValue": "={{ $json.guardar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -640,
+        320
+      ],
+      "id": "facf4b5f-2402-436e-93da-d3fbc58bb760",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5b02ea12-5d01-4de3-9fba-433c37c69221",
+              "leftValue": "={{ $json.guardar[0].accion }}",
+              "rightValue": "actualizar",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        512
+      ],
+      "id": "e34b107f-59cb-4ce6-8950-8fc63381d44c",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave": "={{ $json.guardar[0].clave }}",
+            "valor": "={{ $json.guardar[0].valor }}",
+            "fecha": "={{ $now.toISO() }}",
+            "telefono": "112233344455",
+            "id": "={{ $json.guardar[0].id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        432
+      ],
+      "id": "78010eb8-d33b-4496-ad4e-5d7cb7012f0d",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "iCNHREumcWZ9pil5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 464,
+        "width": 1072
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3056,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "5f271fc3-791a-40c5-b052-91e1f3919c5b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 832,
+        "width": 1696
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1664,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "b119e198-a02e-4a73-be60-63033ede985e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"output\": \" {{ $json.guardrailsInput }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "970392bb-82f7-436e-8366-6fd59adc190c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1392,
+        "width": 1840
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "7dea5439-3495-4c84-9758-7183ab6e0cfd",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"output\": \" {{ $json.guardrailsInput }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1632,
+        416
+      ],
+      "id": "342ac10f-6497-468f-b755-04ac898c4a46",
+      "name": "Edit Fields2"
     }
   ],
   "pinData": {},
@@ -446,7 +790,7 @@
       "main": [
         [
           {
-            "node": "Search records",
+            "node": "Call Guardrail de entrada",
             "type": "main",
             "index": 0
           }
@@ -490,7 +834,7 @@
       "main": [
         [
           {
-            "node": "Create a record",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -585,7 +929,7 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Code in JavaScript1",
             "type": "main",
             "index": 0
           }
@@ -594,6 +938,13 @@
     },
     "If": {
       "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Edit Fields",
@@ -613,18 +964,111 @@
           }
         ]
       ]
+    },
+    "Call Guardrail de entrada": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "e9b34fe0-ee78-4e38-8cbd-7918652b36b4",
+  "versionId": "8fc46b9f-5ce5-4ef8-b6f8-a52d9dd485c8",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "fec1025b88859b374a1a5edd91c7be4606c82dbf722c8586f16a9738ed649e24"
   },
   "nodeGroups": [],
-  "id": "ekwYGIeNIvQh2Cpe",
+  "id": "jJV2J5F6lPVzN1BB",
   "tags": []
 }

@@ -1,0 +1,314 @@
+{
+  "name": "My workflow 17",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2408af24-b584-49d0-b93d-a5b37f8c613b",
+      "name": "When chat message received",
+      "webhookId": "71d4d2fd-c184-40c3-a97d-143d8f09793c"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        464
+      ],
+      "id": "e2d6a78c-54be-4632-a943-fb6357247362",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LuooV6KczJJjJJiz",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Sos un asistente de marketing digital de Agencia Aurora. Respondes consultas del equipo sobre campanas, metricas, testing y buenas practicas.\n\nRespondes de forma concreta y profesional, con datos y numeros cuando la pregunta los pide. Maximo 4 lineas."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "01a76ab4-ae99-4f27-8fad-6acc2a00446f",
+      "name": "AI Agent - Sin RAG"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Sos el asistente interno de Agencia Aurora. Respondes consultas del equipo sobre el Manual de Marketing Digital MMD-2026.2.\n\nREGLAS OBLIGATORIAS\n\n1. PROHIBIDO usar conocimiento externo a los fragmentos que devuelve la herramienta buscar_manual_marketing_digital. Los umbrales de Aurora son propios de la agencia y NO coinciden con las recomendaciones genericas de la industria: si tu conocimiento general contradice al manual, gana el manual.\n\n2. Usa la herramienta SIEMPRE que la consulta mencione metodologia, fases, presupuestos, inversion minima, aprendizaje, nombres de campana, CPL, CTR, ROAS, tasas, ISC, testing A/B, email, SEO, contenidos, reporting o escalamiento. Ante la duda, busca.\n\n3. Podes responder sin buscar unicamente saludos, despedidas y cortesia basica.\n\n4. REGLA DE CONTINGENCIA: si la respuesta no figura de forma explicita en los fragmentos recuperados, responde exactamente: \"Eso no esta definido en el Manual de Marketing Digital de Aurora. Preferis que lo consulte con el Lider de Cuenta?\"\n\n5. CITACION OBLIGATORIA: cerra cada respuesta con [Manual MMD-2026.2, pag. N] usando el metadato pagina real del fragmento. Tenes PROHIBIDO inventar paginas.\n\n6. Antes de dar un numero, fijate si tiene condiciones asociadas (minimos que se cumplen a la vez, ventanas de tiempo, excepciones) y aclaralas.\n\n7. Maximo 4 lineas, sin contar la cita."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        192,
+        416
+      ],
+      "id": "658a66d6-00f7-4a28-a334-645a4c44ee4f",
+      "name": "AI Agent1 - CON RAG"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca en el Manual de Marketing Digital de Agencia Aurora (MMD-2026.2). Usala obligatoriamente para consultas sobre la metodologia Aurora 360 y sus fases, inversion minima por canal, dias de aprendizaje protegido, convencion de nombres de campana, CPL/CTR/ROAS objetivo por vertical, Indice de Salud de Campana (ISC) y sus zonas, protocolo de testing A/B, reglas de email marketing, SEO y contenidos, reporting y escalamiento.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "clase-5-100200",
+          "mode": "list",
+          "cachedResultName": "clase-5-100200"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "marketing-100200"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        688
+      ],
+      "id": "cf8a4784-c070-4794-9d94-54018db24efe",
+      "name": "buscar_manual_marketing_digital",
+      "credentials": {
+        "pineconeApi": {
+          "id": "kfZcnCYlsw8TrYMm",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-multilingual-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        160,
+        864
+      ],
+      "id": "a5571f17-950b-4523-b3f1-f2f65889ccd7",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "cLYpyB5EAGFupLyt",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "rerank-multilingual-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        400,
+        848
+      ],
+      "id": "d811d0a1-d558-4b4e-a129-338647f1ef0f",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "cLYpyB5EAGFupLyt",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b7962b0-86bd-4fca-9127-41b06cc862e7",
+              "name": "MODO",
+              "value": "con_rag",
+              "type": "string"
+            },
+            {
+              "id": "09fb8b1e-232c-4be6-9113-42dd0877844f",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        416
+      ],
+      "id": "13fd02ab-462f-4da1-ab01-efd0d1714363",
+      "name": "Data con rag"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b9333912-bad4-480e-860c-aa979c39e073",
+              "name": "MODO",
+              "value": "sin_rag",
+              "type": "string"
+            },
+            {
+              "id": "a6e2a7d5-d292-4205-925f-4666be1a0d53",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        0
+      ],
+      "id": "5b00e271-01c9-42c2-8be9-7762fcde8b52",
+      "name": "Data sin rag"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Sin RAG",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1 - CON RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Sin RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1 - CON RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_manual_marketing_digital": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1 - CON RAG",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "buscar_manual_marketing_digital",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "buscar_manual_marketing_digital",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Sin RAG": {
+      "main": [
+        [
+          {
+            "node": "Data sin rag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1 - CON RAG": {
+      "main": [
+        [
+          {
+            "node": "Data con rag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data con rag": {
+      "main": [
+        []
+      ]
+    },
+    "Data sin rag": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6083b41f-7223-4e25-a92c-ce0b5fcebcfc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a51becf30a33c9d819919d5a6f05e14ad6ac05fdecbdfd71880b80bc5cb25d5"
+  },
+  "id": "GWqhFMqOHOXgQBLx",
+  "tags": []
+}

@@ -1,0 +1,1404 @@
+{
+  "name": "manager clase6 con audio",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "R8wtIZPQAYRvZbdL",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/R8wtIZPQAYRvZbdL"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "input": "={{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}"
+          },
+          "matchingColumns": [
+            "chatInput"
+          ],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2464,
+        464
+      ],
+      "name": "Call Guardrail de entrada",
+      "id": "3460f27c-55d9-4fad-b21c-3fdf1ab61630"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $json.memoria }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente **manager** de una automatización de atención al estudiante para la plataforma **Coderhouse**.\n\nTu única función es:\n\n1. Analizar el último mensaje del estudiante.\n2. Clasificar la consulta para derivarla al agente especializado correspondiente.\n3. Detectar únicamente información útil para guardar como memoria permanente del estudiante.\n\nNo debés responder la consulta del estudiante ni resolverla.\n\n---\n\n# Entrada\n\nAntes del mensaje del estudiante siempre recibirás la memoria actual del estudiante.\n\nLa memoria tendrá el siguiente formato:\n\n```json\n[\n  {\n    \"id\": \"recJOM2KySdODJBxE\",\n    \"clave\": \"interes_programacion\",\n    \"valor\": \"backend\"\n  },\n  {\n    \"id\": \"rec89Hsd73KlsPq\",\n    \"clave\": \"modalidad_preferida\",\n    \"valor\": \"online en vivo\"\n  }\n]\n```\n\nLa memoria también puede estar vacía:\n\n```json\n[]\n```\n\nDebés utilizar esa memoria para decidir correctamente si un dato debe **crearse** o **actualizarse**.\n\nCuando una clave ya exista en la memoria, deberás reutilizar exactamente el mismo **id** recibido.\n\n---\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el estudiante pregunte o necesite información relacionada con:\n\n- Cursos\n- Carreras\n- Bootcamps\n- Contenidos\n- Programas\n- Duración\n- Modalidad\n- Horarios\n- Certificados\n- Docentes\n- Precio\n- Promociones\n- Becas\n- Medios de pago\n- Cuotas\n- Inscripción\n- Recomendaciones de cursos\n- Comparaciones entre cursos\n- Nivel de dificultad\n- Requisitos previos\n- Salidas laborales\n- Cualquier consulta previa a la compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el estudiante necesite ayuda relacionada con una compra o inscripción ya realizada:\n\n- Acceso a la plataforma\n- Inicio de cursada\n- Problemas con la cuenta\n- Certificados\n- Cambios de comisión\n- Cambios de horario\n- Pausar o reprogramar la cursada\n- Cancelaciones\n- Reembolsos\n- Facturación\n- Problemas con los pagos\n- Clases perdidas\n- Materiales del curso\n- Problemas técnicos\n- Estado de una inscripción\n- Reclamos\n- Consultas sobre cursos ya comprados\n- Cualquier inconveniente posterior a la compra\n\n---\n\n# Extracción de memoria\n\nAdemás de clasificar la consulta, analizá si el mensaje contiene información estable que sea útil para recomendar cursos o brindar una mejor atención en el futuro.\n\nGuardá únicamente información que probablemente siga siendo válida durante mucho tiempo.\n\n## Información que SÍ debe guardarse\n\nPreferencias, objetivos o características estables del estudiante.\n\nEjemplos:\n\n- area_interes\n- tecnologia_preferida\n- tecnologias_que_evita\n- modalidad_preferida\n- horario_preferido\n- nivel_experiencia\n- objetivo_profesional\n- presupuesto_habitual\n- idioma_preferido\n- tipo_de_curso_preferido\n- interes_en_certificaciones\n- interes_en_empleabilidad\n- interes_en_ia\n- interes_en_programacion\n- interes_en_diseno\n- interes_en_marketing\n- interes_en_data\n- interes_en_ciberseguridad\n- interes_en_producto\n- disponibilidad_semanal\n- preferencia_clases_grabadas\n- preferencia_clases_en_vivo\n\nNo limites la extracción únicamente a estos ejemplos.\n\nSi encontrás cualquier otra preferencia estable que pueda mejorar futuras recomendaciones de cursos, también debe extraerse.\n\n---\n\n## Información que NO debe guardarse\n\nNo guardes información temporal o circunstancial como:\n\n- consultas sobre un curso puntual\n- promociones consultadas\n- precios consultados\n- problemas técnicos temporales\n- número de inscripción\n- fechas de inicio\n- comisión\n- estado de pago\n- reclamos\n- solicitudes de cambio\n- certificados solicitados\n- saludos\n- intención de compra puntual\n\nTampoco guardes información de identidad personal, por ejemplo:\n\n- nombre\n- apellido\n- email\n- teléfono\n- documento\n- dirección\n- fecha de nacimiento\n- edad\n- empresa\n- profesión\n- universidad\n\nSalvo que el sistema indique explícitamente que esos datos deben formar parte de la memoria.\n\n---\n\n# Acción\n\nPor cada dato encontrado devolvé:\n\n- id\n- clave\n- valor\n- accion\n\nLa acción será:\n\n- `\"crear\"` si esa clave NO existe en la memoria recibida.\n- `\"actualizar\"` si esa clave YA existe en la memoria recibida.\n\n### Reglas para el campo **id**\n\n- Si la acción es `\"crear\"`, el campo `id` debe ser `null`.\n- Si la acción es `\"actualizar\"`, el campo `id` debe ser exactamente el mismo recibido en la memoria.\n- Nunca inventes un id.\n- Nunca modifiques un id existente.\n\nPodés devolver múltiples objetos.\n\nSi no hay información útil, devolvé un array vacío.\n\n---\n\n# Reglas\n\n1. Si el estudiante consulta antes de inscribirse o comprar → `venta`.\n2. Si el estudiante ya está inscripto o compró un curso → `postventa`.\n3. Si existen varias consultas, clasificá según el objetivo principal.\n4. Si no existe suficiente contexto, clasificá como `venta`.\n5. Nunca respondas la consulta.\n6. Nunca expliques tu decisión.\n7. Nunca inventes información.\n8. Extraé únicamente información explícita del mensaje que represente una preferencia, característica o restricción útil para futuras recomendaciones.\n9. Utilizá la memoria recibida para decidir entre `crear` y `actualizar`.\n10. Nunca guardes datos de identificación personal aunque sean permanentes.\n11. Si tenés dudas sobre si un dato debe guardarse, **NO** lo guardes.\n12. No infieras preferencias a partir de preguntas o consultas. Solo guardá datos afirmados explícitamente por el estudiante.\n13. Cuando la acción sea `\"actualizar\"`, devolvé el mismo `id` recibido en la memoria.\n14. Cuando la acción sea `\"crear\"`, el campo `id` debe ser `null`.\n15. La respuesta debe ser exclusivamente un JSON válido.\n\n---\n\n# Formato de salida\n\n## Sin información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n## Con información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"recJOM2KySdODJBxE\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# Ejemplos\n\n## Ejemplo 1\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> ¿Cuánto cuesta el curso de React?\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 2\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Prefiero cursos online en vivo.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 3\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec111AAA\",\n    \"clave\": \"tecnologia_preferida\",\n    \"valor\": \"Python\"\n  }\n]\n```\n\n**Estudiante**\n\n> Ahora quiero especializarme en JavaScript.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec111AAA\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 4\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Trabajo de mañana, así que prefiero cursar de noche.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"horario_preferido\",\n      \"valor\": \"noche\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 5\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Ya compré el curso de UX y no puedo acceder a la plataforma.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"postventa\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 6\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec222BBB\",\n    \"clave\": \"objetivo_profesional\",\n    \"valor\": \"conseguir trabajo como desarrollador\"\n  }\n]\n```\n\n**Estudiante**\n\n> Mi objetivo ahora es trabajar como Data Analyst.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec222BBB\",\n      \"clave\": \"objetivo_profesional\",\n      \"valor\": \"trabajar como Data Analyst\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 7\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Hola, soy Maxi.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 8\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Me interesa la inteligencia artificial y prefiero cursos cortos.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"interes_en_ia\",\n      \"valor\": \"sí\",\n      \"accion\": \"crear\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"tipo_de_curso_preferido\",\n      \"valor\": \"cursos cortos\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# IMPORTANTE\n\nLa respuesta debe ser exclusivamente un objeto JSON válido.\n\nNo uses Markdown.\n\nNo escribas \\`\\`\\`json.\n\nNo agregues explicaciones.\n\nNo agregues texto antes ni después del JSON.\n\nLa salida debe poder convertirse directamente con un parser JSON sin realizar ninguna limpieza adicional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1312,
+        512
+      ],
+      "id": "e4e79174-d7a6-4122-9dcb-d4008125436b",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1344,
+        704
+      ],
+      "id": "f4761a6e-feb5-432e-9f5d-8baacfb1ed6f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.tel }}-manager",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -1168,
+        720
+      ],
+      "id": "5923b18c-11dd-4c71-b9e2-eccef09aa26e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        496
+      ],
+      "id": "d68b2d5a-01e4-4bc0-9ea1-1bd91171d678",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.tarea }}",
+                    "rightValue": "postventa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b8743567-80db-413b-a5a0-08eb92712456"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Postventa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5b98dac7-8a3f-4363-abc5-1076f0616f41",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.tarea }}",
+                    "rightValue": "venta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Venta"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        496
+      ],
+      "id": "52b272bd-0cd8-40e0-b5a9-c9e72c6f95de",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención al cliente y ventas de Coderhouse.\n\nTu objetivo es responder consultas sobre cursos, carreras, precios, modalidades, fechas de inicio, horarios, certificaciones, profesores, tecnologías, requisitos y proceso de inscripción de forma clara, cordial, natural y profesional.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# BASE DE CONOCIMIENTO\n\nToda la información sobre cursos, carreras, precios, promociones, modalidades, profesores, tecnologías, certificaciones, requisitos, duración, contenidos, plataforma educativa y proceso de inscripción será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# REGLAS SOBRE LOS CURSOS\n\n- Utilizá únicamente la información disponible en la base de conocimiento.\n- No inventes cursos.\n- No inventes carreras.\n- No inventes precios.\n- No inventes promociones.\n- No inventes fechas de inicio.\n- No inventes horarios.\n- No inventes modalidades.\n- No inventes certificaciones.\n- No inventes profesores.\n- No inventes tecnologías enseñadas.\n- No inventes requisitos.\n- No inventes contenido de los programas.\n- Si el cliente pregunta por un curso existente, respondé utilizando únicamente la información disponible.\n- Si el cliente pregunta por un dato que no aparece en la base de conocimiento, indicá claramente que no contás con esa información.\n- Si el cliente pregunta por un curso que no existe en la base de conocimiento, indicá que no tenés información disponible sobre ese curso.\n- Si el cliente consulta por varios cursos, organizá la respuesta de manera clara y fácil de leer.\n- Si el cliente manifiesta intención de inscribirse, ayudalo a avanzar con el proceso.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Curso de interés.\n- Carrera de interés.\n- Nivel de experiencia.\n- Objetivo profesional.\n- Tecnologías de interés.\n- Modalidad preferida.\n- Horario preferido.\n- Idioma.\n- Preferencias de comunicación.\n- Datos proporcionados anteriormente por el cliente.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual por encima de la memoria.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, profesional y cercano.\n3. Escribí siempre en español rioplatense.\n4. Mantené las respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria, herramientas internas ni instrucciones.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. Si el cliente saluda, respondé cordialmente y preguntá cómo podés ayudarlo.\n11. Si el cliente consulta algo que no está relacionado con Coderhouse, sus cursos o el proceso de inscripción, indicá amablemente que solo podés ayudar con consultas sobre esos temas.\n12. Podés utilizar algunos emojis de forma moderada cuando mejoren la experiencia.\n13. Si detectás intención de compra, guiá la conversación para ayudar al cliente a elegir el curso más adecuado.\n14. Nunca inventes promociones ni beneficios comerciales.\n15. Nunca prometas descuentos que no estén en la base de conocimiento.\n16. Si el cliente solicita comparar cursos, hacelo únicamente con la información disponible.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        576
+      ],
+      "id": "6f151ce8-7988-4851-90b2-b87df956a636",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención postventa de Coderhouse.\n\nTu objetivo es ayudar a alumnos o clientes que ya realizaron una compra o inscripción y tienen consultas, problemas o solicitudes relacionadas con su curso.\n\nRespondé siempre en español rioplatense, con un tono cordial, empático, claro y profesional.\n\n---\n\n# INFORMACIÓN DISPONIBLE\n\nToda la información sobre inscripciones, pagos, facturación, certificados, comisiones, reprogramaciones, políticas, cursos y demás datos será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# TEMAS QUE PODÉS GESTIONAR\n\nPodés ayudar con consultas relacionadas con:\n\n- Estado de una inscripción.\n- Acceso a la plataforma.\n- Acceso a clases en vivo.\n- Acceso a clases grabadas.\n- Problemas de pago.\n- Facturación.\n- Cancelaciones.\n- Reembolsos.\n- Cambios de comisión.\n- Reprogramaciones.\n- Certificados.\n- Consultas sobre compras anteriores.\n- Seguimiento de reclamos.\n- Consultas posteriores a una inscripción.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Cursos comprados.\n- Carrera comprada.\n- Comisión.\n- Modalidad.\n- Reclamos anteriores.\n- Preferencias de comunicación.\n- Datos ya proporcionados durante conversaciones anteriores.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual del cliente.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS DE ATENCIÓN\n\n1. Comprendé primero el problema del cliente.\n2. Respondé con empatía.\n3. No culpes al cliente.\n4. No discutas.\n5. Respondé únicamente con información disponible.\n6. Si faltan datos para resolver el caso, solicitá únicamente los necesarios.\n7. No pidas información que el cliente ya proporcionó.\n8. No solicites información innecesaria.\n9. Si el problema puede resolverse con la información disponible, hacelo directamente.\n10. Si no es posible resolverlo, explicá claramente qué información falta.\n\n---\n\n# INSCRIPCIONES\n\nSi el cliente informa un problema con su inscripción:\n\n- Identificá el curso o carrera.\n- Comprendé el inconveniente.\n- Solicitá únicamente la información necesaria.\n- No inventes estados de inscripción.\n- No confirmes soluciones sin información suficiente.\n\n---\n\n# PAGOS\n\nSi el cliente informa un problema con un pago:\n\n- Identificá el curso involucrado.\n- Comprendé cuál es el inconveniente.\n- Solicitá únicamente la información necesaria para identificar el caso.\n- No inventes estados del pago.\n- No confirmes pagos aprobados o rechazados sin información disponible.\n\n---\n\n# CANCELACIONES Y REEMBOLSOS\n\nSi el cliente solicita cancelar un curso o pedir un reembolso:\n\n- Comprendé el motivo.\n- Identificá el curso correspondiente.\n- Solicitá únicamente los datos necesarios.\n- No confirmes que la solicitud fue aprobada.\n- No prometas plazos.\n- Si no existe información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CAMBIO DE COMISIÓN\n\nSi el cliente solicita cambiar de comisión:\n\n- Identificá el curso.\n- Comprendé el motivo.\n- Solicitá únicamente la información necesaria.\n- No confirmes disponibilidad de otras comisiones si esa información no está disponible.\n\n---\n\n# PROBLEMAS DE ACCESO\n\nSi el cliente no puede ingresar a la plataforma o a las clases:\n\n- Mostrá empatía.\n- Comprendé el problema.\n- Solicitá únicamente la información necesaria para diagnosticar el inconveniente.\n- No afirmes que existe un error del sistema.\n- Si no hay información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CERTIFICADOS\n\nSi el cliente consulta por un certificado:\n\n- Respondé utilizando únicamente la información disponible.\n- Si falta información, solicitá únicamente los datos necesarios.\n- No confirmes certificados emitidos si no existe información que lo confirme.\n\n---\n\n# SEGUIMIENTO DE CASOS\n\nSi el cliente consulta por un reclamo anterior:\n\n- Utilizá únicamente la información disponible.\n- No inventes estados.\n- Si no podés confirmar el estado, indicá claramente que no contás con información suficiente.\n\n---\n\n# INFORMACIÓN SENSIBLE\n\nNunca solicites:\n\n- Contraseñas.\n- Tokens.\n- Códigos de autenticación.\n- Códigos de verificación.\n- Datos completos de tarjetas.\n- Claves bancarias.\n- Información sensible innecesaria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, empático y profesional.\n3. Escribí siempre en español rioplatense.\n4. Mantené respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria ni herramientas internas.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. No prometas soluciones ni plazos que no estén confirmados.\n11. Si necesitás más información, solicitála de forma clara y ordenada.\n12. Si la consulta no corresponde a postventa, indicá amablemente que este canal está destinado a consultas posteriores a una compra o inscripción.\n13. Podés utilizar algunos emojis de forma moderada cuando ayuden a transmitir empatía.\n14. Si el problema requiere revisión manual, indicá que será necesario revisar el caso, sin prometer tiempos ni resultados.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        752,
+        48
+      ],
+      "id": "bd269230-6793-412a-97af-2d7dac2e296a",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        320
+      ],
+      "id": "b42a3231-e44d-461e-9391-f8b697a89a82",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        864
+      ],
+      "id": "c4be7c2a-4ab9-4f96-85a3-7223d3b6ecb4",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.tel }}-postventa"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        928,
+        336
+      ],
+      "id": "8f269720-d362-43da-9cad-bc2714d0d02f",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.tel }}-venta"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        848,
+        880
+      ],
+      "id": "1746f41b-fa83-4f62-9a64-4fd39c104559",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "filterByFormula": "={telefono}='{{$('Webhook').item.json.body.tel}}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -1696,
+        512
+      ],
+      "id": "5d82b5b9-46ff-41ad-94de-95c239806a53",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "987a43de-b1c2-4192-9838-1721f061db79",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2240,
+        448
+      ],
+      "id": "f3e087f5-d048-4c34-88da-62e3997c14dd",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave": "={{ $json.clave }}",
+            "valor": "={{ $json.valor }}",
+            "fecha": "={{ $now.toISO() }}",
+            "telefono": "={{ $('Webhook').item.json.body.tel }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        864
+      ],
+      "id": "04a45b1b-097c-46e8-adc2-f5aa4eaa1641",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6352626f-c15c-49f6-b754-5e2eb81a4ac8",
+              "leftValue": "={{ $json.guardar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -736,
+        496
+      ],
+      "id": "e6687683-ccf3-4acb-9543-841a8f4cb6c9",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5b02ea12-5d01-4de3-9fba-433c37c69221",
+              "leftValue": "={{ $json.accion }}",
+              "rightValue": "actualizar",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        672
+      ],
+      "id": "e9f91a81-94f0-4bf7-8c66-837a4059466c",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave": "={{ $json.clave }}",
+            "valor": "={{ $json.valor }}",
+            "fecha": "={{ $now.toISO() }}",
+            "id": "={{ $json.id }}",
+            "telefono": "={{ $('Webhook').item.json.body.tel }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        576
+      ],
+      "id": "e2fb4e70-1135-4116-a4c0-f62b2c257842",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 560,
+        "width": 1424
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3312,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "c2906f3e-f1e6-4aca-bc82-13ac6539da07",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 832,
+        "width": 1696
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1760,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "649d1be8-d9e8-4412-8e4f-869f040300f6",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1392,
+        "width": 1072
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "6ace0c03-33d2-4b91-98a8-ca19c1557747",
+      "name": "Sticky Note2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst texto = items\n  .map(item => {\n    const data = item.json ?? {};\n    // Busca clave/valor dentro de fields o directamente en json\n    const fuente = data.fields ?? data;\n    const clave = fuente.clave;\n    const valor = fuente.valor;\n\n    // Descarta items sin clave\n    if (clave === undefined) return null;\n\n    return `- id: ${data.id ?? \"?\"} | ${clave}: ${valor}`;\n  })\n  .filter(Boolean)   // saca los null (items descartados)\n  .join(\"\\n\");\n\nreturn [{ json: { memoria: texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        512
+      ],
+      "id": "6cad1b9c-5326-4386-af32-3bda2be08f87",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Devuelve un item por cada elemento del array \"guardar\"\nconst salida = [];\n\nfor (const item of $input.all()) {\n  const guardar = item.json.guardar;\n  if (Array.isArray(guardar)) {\n    for (const registro of guardar) {\n      salida.push({ json: registro });\n    }\n  }\n}\n\nreturn salida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        672
+      ],
+      "id": "e06564c5-d25b-45c9-b154-a79d055084e2",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "83754566-3a29-450e-90c9-221a565196f4",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3488,
+        560
+      ],
+      "id": "6c6ac730-ac48-4107-9c76-ce1f84e42c71",
+      "name": "Webhook",
+      "webhookId": "83754566-3a29-450e-90c9-221a565196f4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fd5704c3-0599-49d8-ad38-657d3d979d52"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3cfecc46-3f29-4ff1-92c5-4a963ff8ca15",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -3152,
+        544
+      ],
+      "id": "66456878-417f-4c92-860b-757e33f4fd08",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2944,
+        688
+      ],
+      "id": "fc918133-2ef0-4f9d-9f46-3e872f14c024",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Transcribí este audio en español. Devolvé solo el texto.\"\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"audio/ogg\",\n            \"data\": \"{{ $json.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -2736,
+        688
+      ],
+      "id": "ac1ea8e7-38d0-4206-8801-b56f79e477f6",
+      "name": "Gemini pasar audio a texto",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KQvRjuAtzef7GWDE",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n   \"output\":\" {{ $json.output }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2032,
+        704
+      ],
+      "id": "951d5524-4d30-4bb5-a6a4-11f78ed1fc1c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {output: $json.output } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1920,
+        256
+      ],
+      "id": "7c53f4d5-6baa-4efa-b074-38f1ef822ad1",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1424,
+        "width": 736
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1504,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "7fb9643e-85f4-45ab-a1b9-d5102221109a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c5a9b0b-33fb-4b59-9ace-24d86cf052c0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "813da603-439b-4b10-bb98-c44fbe42e9a1",
+                    "leftValue": "={{ $('Webhook').item.json.body.type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        400
+      ],
+      "id": "4ec97792-ec92-4a3a-ad01-bc0d014ef695",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/JdDcTYXubjEWsI0LxfUZ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\":{{JSON.stringify($json.output)}},\n  \"model_id\": \"eleven_multilingual_v2\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1840,
+        496
+      ],
+      "id": "c3d66b68-be0f-4e90-aa4c-f0caf1361e9a",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WidiuV4EvTaTiPIb",
+          "name": "Header Auth account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2064,
+        496
+      ],
+      "id": "5be5a3af-ab3e-42c1-9653-173866538e35",
+      "name": "Respond to Webhook2"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "user-agent": "PostmanRuntime/7.56.0",
+            "accept": "*/*",
+            "postman-token": "4ad1188c-906b-44a7-b1ff-622bb00a7305",
+            "host": "localhost:5678",
+            "accept-encoding": "gzip, deflate, br",
+            "connection": "keep-alive",
+            "content-type": "multipart/form-data; boundary=--------------------------845961899307729760553096",
+            "content-length": "479"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "chatInput": "Hola quiero saber sobre los cursos de programacion. mi lenguaje de programacion favorito es php",
+            "type": "text",
+            "tel": "12112342324"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/83754566-3a29-450e-90c9-221a565196f4",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Extract from File": [
+      {
+        "json": {
+          "data": "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"
+        }
+      }
+    ],
+    "Gemini pasar audio a texto": [
+      {
+        "json": {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "Hola, buenos días. Quería consultar por el curso de automatización con IA."
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 177,
+            "candidatesTokenCount": 17,
+            "totalTokenCount": 220,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 15
+              },
+              {
+                "modality": "AUDIO",
+                "tokenCount": 162
+              }
+            ],
+            "thoughtsTokenCount": 26,
+            "serviceTier": "standard"
+          },
+          "modelVersion": "gemini-2.5-flash",
+          "responseId": "qG9yaqarF6DQz7IP6rvZgQ0"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Guardrail de entrada": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Call Guardrail de entrada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Gemini pasar audio a texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini pasar audio a texto": {
+      "main": [
+        [
+          {
+            "node": "Call Guardrail de entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1857a0f0-0368-42c5-a83f-9888c5782763",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "efa88620d961e64d26d4ae7bb59c6dc2923944b6da5e71895f32b3f10a9aa49b"
+  },
+  "nodeGroups": [],
+  "id": "up23hrgACt6QJ6V8",
+  "tags": []
+}

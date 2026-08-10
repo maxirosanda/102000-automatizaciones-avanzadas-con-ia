@@ -420,7 +420,7 @@
     },
     {
       "parameters": {
-        "content": "Seguridad: protección contra Prompt Injection / Jailbreak. ✅ Ya tenés.\nControl de acceso: impedir acceso a información interna o privada. ✅ Ya tenés.\nPrivacidad: minimizar y sanitizar los datos antes de enviarlos al LLM. ⚠️ Agregar.\nMemoria segura: guardar solo información necesaria y controlar qué se almacena. ✅ Parcialmente.\nHuman-in-the-loop: aprobación humana para acciones sensibles o de alto impacto. ⚠️ Agregar si existen esas acciones.\nObservabilidad: registrar ejecuciones, decisiones, errores y acciones. ⚠️ Agregar.\nTrazabilidad: correlationId para poder seguir una ejecución completa. ⚠️ Agregar.\nControl de costos: registrar tokens de entrada/salida y calcular el costo. ⚠️ Agregar.\nLímites: limitar iteraciones/llamadas del agente para evitar consumo excesivo. ⚠️ Agregar.\nAlertas: avisar cuando consumo, errores o fallos superen determinados límites. ⚠️ Agregar.\nManejo de errores: workflow de error + registro + alerta. ⚠️ Agregar.\nVersionado: identificar versión de prompts/agentes/modelos utilizados. ⚠️ Agregar.\nDocumentación/gobernanza: dejar definidas responsabilidades, reglas, riesgos y controles. ⚠️ Documentar.",
+        "content": "ngrok + whatsaap\nSeguridad: protección contra Prompt Injection / Jailbreak. (ok)\nControl de acceso: impedir acceso a información interna o privada. (ok)\nPrivacidad: minimizar y sanitizar los datos antes de enviarlos al LLM. (ver numero de telefono)\nMemoria segura: guardar solo información necesaria y controlar qué se almacena. (ver numero de telefono )\nHuman-in-the-loop: aprobación humana para acciones sensibles o de alto impacto. (agregar)\nObservabilidad: registrar ejecuciones, decisiones, errores y acciones. (agregar)\nTrazabilidad: correlationId para poder seguir una ejecución completa. (no entendi para que)\nControl de costos: registrar tokens de entrada/salida y calcular el costo. (api key)\nLímites: limitar iteraciones/llamadas del agente para evitar consumo excesivo. (agregar)\nManejo de errores: workflow de error + registro + alerta. (agregar)",
         "height": 1200,
         "width": 2512
       },
@@ -571,7 +571,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "90ab8264-8603-4d0e-8aa6-7178d4ea838e",
+  "versionId": "73fedf60-6ae7-4ff7-a85b-329cadedab33",
   "meta": {
     "instanceId": "a8159c93a6c2c0912bf99852851fc8a044f772185338a106bcbfbdf4cf647ecb"
   },

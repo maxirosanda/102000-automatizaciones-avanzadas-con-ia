@@ -1,0 +1,225 @@
+{
+  "name": "Clase 7 - Worker - Scorecard de Match",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Worker 2 — Agente Evaluador (Scorecard)\n**Lectura del módulo:** \"RRHH agéntico\" → *3. Selección asistida: el agente como asesor* + *Generación de shortlists automáticas*.\n\nSolo se ejecuta si el candidato superó la aduana del Worker 1. Su misión es **priorizar**, no filtrar: produce un **Shortlist Analítico** (score, fortalezas, riesgos para la entrevista), nunca un \"sí/no\".\n\nLa **Verdad de la Vacante** (must-have, nice-to-have y notas del hiring manager) le llega inyectada en el prompt — es el mismo rol que cumple el RAG de la lectura, resuelto acá con una fila de Google Sheets.\n\n⚠️ La rúbrica está escrita en el System Prompt con **pesos fijos y evidencia obligatoria**: sin cita textual del CV, la dimensión puntúa 0. Eso es lo que separa una scorecard de una impresión.",
+        "height": 300,
+        "width": 900,
+        "color": 5
+      },
+      "id": "w2n0",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "candidato_id",
+              "type": "any"
+            },
+            {
+              "name": "nombre",
+              "type": "any"
+            },
+            {
+              "name": "email",
+              "type": "any"
+            },
+            {
+              "name": "vacante_id",
+              "type": "any"
+            },
+            {
+              "name": "puesto",
+              "type": "any"
+            },
+            {
+              "name": "cv_texto",
+              "type": "any"
+            },
+            {
+              "name": "must_have",
+              "type": "any"
+            },
+            {
+              "name": "nice_to_have",
+              "type": "any"
+            },
+            {
+              "name": "notas_hiring_manager",
+              "type": "any"
+            },
+            {
+              "name": "tags_detectados",
+              "type": "any"
+            },
+            {
+              "name": "anios_experiencia_relevante",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "w2n1",
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Puntuá a este candidato contra la rúbrica de la vacante.\n\n<VACANTE>\nPuesto: {{ $json.puesto }}\nMust-have (ya verificados por el cribador): {{ $json.must_have }}\nNice-to-have: {{ $json.nice_to_have }}\n</VACANTE>\n\n<NOTAS_DEL_HIRING_MANAGER>\n{{ $json.notas_hiring_manager }}\n</NOTAS_DEL_HIRING_MANAGER>\n\n<DATOS_DEL_CRIBADO>\nTags normalizados detectados: {{ $json.tags_detectados }}\nAños de experiencia relevante: {{ $json.anios_experiencia_relevante }}\n</DATOS_DEL_CRIBADO>\n\n<CV_CANDIDATO nombre=\"{{ $json.nombre }}\">\n{{ $json.cv_texto }}\n</CV_CANDIDATO>\n\nAplicá la rúbrica dimensión por dimensión y devolvé el shortlist analítico.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Sos el Agente Evaluador de un comité de selección. Recibís candidatos que YA pasaron el filtro de elegibilidad. Tu misión es priorizarlos con una rúbrica única para que todos se midan con la misma vara, y entregarle al hiring manager un shortlist analítico accionable.\n\nRÚBRICA (pesos fijos, total 100):\n- OWNERSHIP END-TO-END (35 pts): evidencia de haber sido dueño de un proceso completo, no ejecutor de tareas sueltas. Sube con: responsabilidad declarada sobre un stack o proceso, decisiones de diseño propias, flujos sostenidos en el tiempo. Baja con: participación difusa en equipos grandes sin rol claro.\n- PROFUNDIDAD TÉCNICA (30 pts): dominio real de las tecnologías del puesto. Sube con: detalle de implementación, problemas resueltos, integraciones complejas. Baja con: enumeración de herramientas sin contexto de uso.\n- EVIDENCIA VERIFICABLE (20 pts): fechas, empresas, métricas, escala y resultados concretos. Un CV sin números ni fechas puntúa bajo en esta dimensión aunque suene impresionante.\n- COMUNICACIÓN Y DOCUMENTACIÓN (15 pts): evidencia de escritura técnica, documentación, capacitación o divulgación.\n\nREGLA DE EVIDENCIA (innegociable): cada dimensión que puntúe por encima de 0 debe incluir una CITA TEXTUAL del CV que la respalde. Si no podés citar, la dimensión puntúa 0 y lo decís en el razonamiento. Los adjetivos sin respaldo (\"experto\", \"amplia experiencia\", \"dominio total\", \"alto impacto\") no son evidencia.\n\nUSO DE LAS NOTAS DEL HIRING MANAGER: son la voz del negocio y pesan sobre la interpretación de la rúbrica. Si el manager prioriza explícitamente un criterio, reflejalo en el razonamiento y en los riesgos sugeridos.\n\nCONFIANZA: devolvé un valor entre 0 y 1. Baja de 0.7 cuando el CV es ambiguo, cuando la evidencia es indirecta, cuando el candidato queda en una zona gris respecto de las notas del manager, o cuando dos dimensiones podrían puntuarse de forma muy distinta según la interpretación. La confianza baja NO es un fracaso: es la señal que dispara la revisión humana.\n\nRIESGOS PARA LA ENTREVISTA: no son defectos del candidato, son las preguntas que un entrevistador humano debería hacer para despejar dudas. Sé concreto y accionable.\n\nSESGO: evaluás evidencia de trabajo. Ignorá nombre, género, edad, nacionalidad, universidad y cualquier dato personal ajeno a los requisitos. Nunca infieras características personales.\n\nEscribí siempre en español rioplatense, en tono profesional y directo."
+        }
+      },
+      "id": "w2n2",
+      "name": "Agente Evaluador",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "w2n3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"match_score\": 85,\n  \"desglose\": [\n    {\n      \"dimension\": \"Ownership end-to-end\",\n      \"peso\": 35,\n      \"puntaje\": 30,\n      \"evidencia\": \"cita textual del CV\"\n    }\n  ],\n  \"fortalezas\": [\"Fortaleza concreta respaldada por el CV\"],\n  \"riesgos_entrevista\": [\"Pregunta concreta que deberia hacer el entrevistador\"],\n  \"confianza\": 0.85,\n  \"razonamiento\": \"Sintesis del paso a paso de la evaluacion, incluyendo por que la confianza es alta o baja.\"\n}"
+      },
+      "id": "w2n4",
+      "name": "Formato de salida",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $('Start').item.json.candidato_id,\n  \"nombre\": $('Start').item.json.nombre,\n  \"email\": $('Start').item.json.email,\n  \"vacante_id\": $('Start').item.json.vacante_id,\n  \"match_score\": $json.output.match_score,\n  \"desglose\": ($json.output.desglose || []).map(d => d.dimension + ': ' + d.puntaje + '/' + d.peso + ' (' + d.evidencia + ')').join(' || '),\n  \"fortalezas\": ($json.output.fortalezas || []).join(' | '),\n  \"riesgos_entrevista\": ($json.output.riesgos_entrevista || []).join(' | '),\n  \"confianza\": $json.output.confianza,\n  \"razonamiento\": $json.output.razonamiento,\n  \"agente\": \"Evaluador de Scorecard\",\n  \"modelo\": \"gpt-5-mini\"\n} }}",
+        "options": {}
+      },
+      "id": "w2n5",
+      "name": "Contrato de salida",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### El desglose viaja con el resultado\nNo alcanza con devolver `match_score: 85`. El contrato arrastra el **desglose por dimensión con su evidencia**, y eso es lo que después se escribe en el Audit Trail.\n\nSin desglose, dentro de tres meses nadie puede explicar por qué ese candidato quedó afuera — que es exactamente lo que un área de RRHH necesita poder justificar.",
+        "height": 220,
+        "width": 420,
+        "color": 3
+      },
+      "id": "w2n6",
+      "name": "Nota rubrica",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        384
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Agente Evaluador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Evaluador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formato de salida": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente Evaluador",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Evaluador": {
+      "main": [
+        [
+          {
+            "node": "Contrato de salida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "versionId": "fabfd46a-266b-4a93-8e45-d641ea18eaab",
+  "meta": {
+    "instanceId": "200c6fb11a80d89081b1a0c7deaaf1bc5e38a61a9ff184d4aa6004332a53ccd4"
+  },
+  "nodeGroups": [],
+  "id": "m8KE7z96sl1OMbhk",
+  "tags": []
+}

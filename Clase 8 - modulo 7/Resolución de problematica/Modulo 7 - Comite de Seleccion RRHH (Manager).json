@@ -1,0 +1,1347 @@
+{
+  "name": "Clase 7 - Comite de Seleccion RRHH (Manager)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Comité de Selección Agéntico — Agencia Aurora\n**Módulo 7 · Agentes Especializados por Industria · vertical RRHH**\n\nUna postulación entra por webhook y sale con una decisión trazable. El Manager **no razona**: enruta, aplica reglas duras y decide quién puede actuar solo y quién necesita una firma humana.\n\n**La red de especialistas:**\n1. **Cribador de Elegibilidad** — aduana de must-have (sub-workflow)\n2. **Evaluador de Scorecard** — priorización con rúbrica (sub-workflow)\n\n**La frontera de autonomía:**\n- 🟢 Autónomo → registrar en el Audit Trail y avisar al equipo interno\n- 🔴 Supervisado → todo mensaje que salga hacia el candidato queda en **borrador**\n\n> El agente nunca envía un rechazo. Nunca.",
+        "height": 488,
+        "width": 776,
+        "color": 3
+      },
+      "id": "m0",
+      "name": "Nota portada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        -592
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "postulacion-rrhh",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "m1",
+      "name": "Postulacion recibida",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2608,
+        0
+      ],
+      "webhookId": "2ca4f897-9f58-42e9-9d3f-20609c236bd2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $json.candidato_id,\n  \"nombre\": $json.nombre,\n  \"email\": $json.email,\n  \"vacante_id\": $json.vacante_id,\n  \"cv_texto\": $json.cv_texto,\n  \"origen_cv\": $json.origen_cv,\n  \"email_equipo\": \"REEMPLAZAR_EMAIL_EQUIPO\",\n  \"umbral_verde\": 75,\n  \"umbral_rojo\": 50,\n  \"umbral_confianza\": 0.7\n} }}",
+        "options": {}
+      },
+      "id": "m2",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Los umbrales viven en un solo lugar\nSubir la vara del shortlist tiene que ser **cambiar un número acá**, no editar un prompt.\n\n`umbral_confianza` es el más importante: por debajo de 0.7 el sistema no confía en su propia decisión y la manda a un humano, aunque el puntaje sea alto.\n\n⚠️ Reemplazá `REEMPLAZAR_EMAIL_EQUIPO` por el mail del equipo de selección.",
+        "height": 240,
+        "width": 400,
+        "color": 4
+      },
+      "id": "m2b",
+      "name": "Nota config",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REEMPLAZAR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Vacantes"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Vacante_ID",
+              "lookupValue": "={{ $json.vacante_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "m3",
+      "name": "Traer la vacante",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -688,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "0Z8SD4DEM46vp6cx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $('Configuracion').item.json.candidato_id,\n  \"nombre\": $('Configuracion').item.json.nombre,\n  \"email\": $('Configuracion').item.json.email,\n  \"vacante_id\": $('Configuracion').item.json.vacante_id,\n  \"cv_texto\": $('Configuracion').item.json.cv_texto,\n  \"puesto\": $json.Puesto,\n  \"must_have\": $json.Must_Have,\n  \"nice_to_have\": $json.Nice_To_Have,\n  \"notas_hiring_manager\": $json.Notas_Hiring_Manager\n} }}",
+        "options": {}
+      },
+      "id": "m4",
+      "name": "Contexto de la vacante",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### La \"Verdad de la Vacante\"\nLa lectura la resuelve con RAG sobre Pinecone; acá alcanza **una fila de Sheets**, porque el corpus es una sola vacante.\n\nEse es el criterio de diagnóstico: RAG cuando el conocimiento no entra en el prompt. Acá entra.\n\nLo que sí importa es que las **notas del hiring manager** viajen al agente: sin ellas el evaluador puntúa un puesto genérico.",
+        "height": 240,
+        "width": 400,
+        "color": 5
+      },
+      "id": "m4b",
+      "name": "Nota vacante",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "g2F0dmQv0cp0KW8x",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/g2F0dmQv0cp0KW8x",
+          "cachedResultName": "Clase 7 - Worker - Cribado de Elegibilidad"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "candidato_id": "={{ $json.candidato_id }}",
+            "nombre": "={{ $json.nombre }}",
+            "email": "={{ $json.email }}",
+            "vacante_id": "={{ $json.vacante_id }}",
+            "puesto": "={{ $json.puesto }}",
+            "cv_texto": "={{ $json.cv_texto }}",
+            "must_have": "={{ $json.must_have }}",
+            "nice_to_have": "={{ $json.nice_to_have }}",
+            "notas_hiring_manager": "={{ $json.notas_hiring_manager }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "candidato_id",
+              "displayName": "candidato_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vacante_id",
+              "displayName": "vacante_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "puesto",
+              "displayName": "puesto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cv_texto",
+              "displayName": "cv_texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "must_have",
+              "displayName": "must_have",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nice_to_have",
+              "displayName": "nice_to_have",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notas_hiring_manager",
+              "displayName": "notas_hiring_manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "m5",
+      "name": "Worker: Cribado de Elegibilidad",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.elegible }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "m6",
+      "name": "Es elegible?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Regla dura, no prompt\n\"El candidato cumple los must-have\" lo decide el **agente** (lenguaje).\n\"Qué hago con eso\" lo decide un **nodo IF** (código).\n\nEs el error nº1 de la tabla del módulo: *poner toda la lógica en el prompt*. El LLM razona sobre el CV; el enrutamiento es determinista y auditable.",
+        "height": 240,
+        "width": 400,
+        "color": 4
+      },
+      "id": "m6b",
+      "name": "Nota enrutamiento",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "m8KE7z96sl1OMbhk",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/m8KE7z96sl1OMbhk",
+          "cachedResultName": "Clase 7 - Worker - Scorecard de Match"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "candidato_id": "={{ $json.candidato_id }}",
+            "nombre": "={{ $json.nombre }}",
+            "email": "={{ $json.email }}",
+            "vacante_id": "={{ $json.vacante_id }}",
+            "puesto": "={{ $('Contexto de la vacante').item.json.puesto }}",
+            "cv_texto": "={{ $('Contexto de la vacante').item.json.cv_texto }}",
+            "must_have": "={{ $('Contexto de la vacante').item.json.must_have }}",
+            "nice_to_have": "={{ $('Contexto de la vacante').item.json.nice_to_have }}",
+            "notas_hiring_manager": "={{ $('Contexto de la vacante').item.json.notas_hiring_manager }}",
+            "tags_detectados": "={{ $json.tags_detectados }}",
+            "anios_experiencia_relevante": "={{ $json.anios_experiencia_relevante }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "candidato_id",
+              "displayName": "candidato_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vacante_id",
+              "displayName": "vacante_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "puesto",
+              "displayName": "puesto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cv_texto",
+              "displayName": "cv_texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "must_have",
+              "displayName": "must_have",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nice_to_have",
+              "displayName": "nice_to_have",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notas_hiring_manager",
+              "displayName": "notas_hiring_manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tags_detectados",
+              "displayName": "tags_detectados",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "anios_experiencia_relevante",
+              "displayName": "anios_experiencia_relevante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "m7",
+      "name": "Worker: Scorecard de Match",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "v1",
+                    "leftValue": "={{ $json.match_score }}",
+                    "rightValue": "={{ $('Configuracion').item.json.umbral_verde }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  },
+                  {
+                    "id": "v2",
+                    "leftValue": "={{ $json.confianza }}",
+                    "rightValue": "={{ $('Configuracion').item.json.umbral_confianza }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VERDE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a1",
+                    "leftValue": "={{ $json.match_score }}",
+                    "rightValue": "={{ $('Configuracion').item.json.umbral_rojo }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AMARILLO"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "ROJO"
+        }
+      },
+      "id": "m8",
+      "name": "Semaforo de decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### El semáforo operativo\nExactamente lo que pide la pre-entrega del módulo: la frontera de autonomía escrita de forma **taxativa**.\n\n🟢 **VERDE** — score ≥ 75 **y** confianza ≥ 0.7 → shortlist al hiring manager\n🟡 **AMARILLO** — score ≥ 50, o score alto con **confianza baja** → decide un humano\n🔴 **ROJO** — score < 50 → borrador de rechazo, nunca envío\n\nFijate que un candidato brillante con confianza baja **no pasa a verde**: el sistema prefiere molestar a un humano antes que equivocarse solo.",
+        "height": 260,
+        "width": 420,
+        "color": 6
+      },
+      "id": "m8b",
+      "name": "Nota semaforo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"Fecha\": $now.toISO(),\n  \"Candidato_ID\": $json.candidato_id,\n  \"Nombre\": $json.nombre,\n  \"Email\": $json.email,\n  \"Vacante_ID\": $json.vacante_id,\n  \"Origen_CV\": $('Configuracion').item.json.origen_cv,\n  \"Elegible\": \"no\",\n  \"Motivo_Elegibilidad\": $json.motivo,\n  \"Tags_Detectados\": $json.tags_detectados,\n  \"Anios_Experiencia\": $json.anios_experiencia_relevante,\n  \"Match_Score\": 0,\n  \"Confianza\": $json.confianza,\n  \"Semaforo\": \"NO_ELEGIBLE\",\n  \"Fortalezas\": \"\",\n  \"Riesgos_Entrevista\": \"\",\n  \"Evidencias\": $json.must_have_detalle,\n  \"Accion_Tomada\": \"Borrador de respuesta generado - pendiente de aprobacion humana\",\n  \"Razonamiento_Agente\": $json.motivo,\n  \"Modelo\": $json.modelo\n} }}",
+        "options": {}
+      },
+      "id": "m9",
+      "name": "Decision: No elegible",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"Fecha\": $now.toISO(),\n  \"Candidato_ID\": $json.candidato_id,\n  \"Nombre\": $json.nombre,\n  \"Email\": $json.email,\n  \"Vacante_ID\": $json.vacante_id,\n  \"Origen_CV\": $('Configuracion').item.json.origen_cv,\n  \"Elegible\": \"si\",\n  \"Motivo_Elegibilidad\": $('Worker: Cribado de Elegibilidad').item.json.motivo,\n  \"Tags_Detectados\": $('Worker: Cribado de Elegibilidad').item.json.tags_detectados,\n  \"Anios_Experiencia\": $('Worker: Cribado de Elegibilidad').item.json.anios_experiencia_relevante,\n  \"Match_Score\": $json.match_score,\n  \"Confianza\": $json.confianza,\n  \"Semaforo\": \"VERDE\",\n  \"Fortalezas\": $json.fortalezas,\n  \"Riesgos_Entrevista\": $json.riesgos_entrevista,\n  \"Evidencias\": $json.desglose,\n  \"Accion_Tomada\": \"Shortlist enviado al hiring manager\",\n  \"Razonamiento_Agente\": $json.razonamiento,\n  \"Modelo\": $json.modelo\n} }}",
+        "options": {}
+      },
+      "id": "m10",
+      "name": "Decision: Verde",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"Fecha\": $now.toISO(),\n  \"Candidato_ID\": $json.candidato_id,\n  \"Nombre\": $json.nombre,\n  \"Email\": $json.email,\n  \"Vacante_ID\": $json.vacante_id,\n  \"Origen_CV\": $('Configuracion').item.json.origen_cv,\n  \"Elegible\": \"si\",\n  \"Motivo_Elegibilidad\": $('Worker: Cribado de Elegibilidad').item.json.motivo,\n  \"Tags_Detectados\": $('Worker: Cribado de Elegibilidad').item.json.tags_detectados,\n  \"Anios_Experiencia\": $('Worker: Cribado de Elegibilidad').item.json.anios_experiencia_relevante,\n  \"Match_Score\": $json.match_score,\n  \"Confianza\": $json.confianza,\n  \"Semaforo\": \"AMARILLO\",\n  \"Fortalezas\": $json.fortalezas,\n  \"Riesgos_Entrevista\": $json.riesgos_entrevista,\n  \"Evidencias\": $json.desglose,\n  \"Accion_Tomada\": \"Derivado a revision humana - el sistema no decide solo\",\n  \"Razonamiento_Agente\": $json.razonamiento,\n  \"Modelo\": $json.modelo\n} }}",
+        "options": {}
+      },
+      "id": "m11",
+      "name": "Decision: Amarillo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"Fecha\": $now.toISO(),\n  \"Candidato_ID\": $json.candidato_id,\n  \"Nombre\": $json.nombre,\n  \"Email\": $json.email,\n  \"Vacante_ID\": $json.vacante_id,\n  \"Origen_CV\": $('Configuracion').item.json.origen_cv,\n  \"Elegible\": \"si\",\n  \"Motivo_Elegibilidad\": $('Worker: Cribado de Elegibilidad').item.json.motivo,\n  \"Tags_Detectados\": $('Worker: Cribado de Elegibilidad').item.json.tags_detectados,\n  \"Anios_Experiencia\": $('Worker: Cribado de Elegibilidad').item.json.anios_experiencia_relevante,\n  \"Match_Score\": $json.match_score,\n  \"Confianza\": $json.confianza,\n  \"Semaforo\": \"ROJO\",\n  \"Fortalezas\": $json.fortalezas,\n  \"Riesgos_Entrevista\": $json.riesgos_entrevista,\n  \"Evidencias\": $json.desglose,\n  \"Accion_Tomada\": \"Borrador de respuesta generado - pendiente de aprobacion humana\",\n  \"Razonamiento_Agente\": $json.razonamiento,\n  \"Modelo\": $json.modelo\n} }}",
+        "options": {}
+      },
+      "id": "m12",
+      "name": "Decision: Rojo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REEMPLAZAR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Evaluaciones"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "m13",
+      "name": "Registrar en Audit Trail",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1008,
+        -64
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "0Z8SD4DEM46vp6cx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Audit Trail\nTodas las ramas convergen acá **antes** de cualquier acción. Se registra siempre: elegibles, rechazados y dudosos.\n\nGuardamos el razonamiento, la evidencia citada, el modelo y la confianza — lo que pide la lectura de Finanzas y lo que un área de RRHH necesita para justificar una decisión meses después.\n\n🟢 Escribir el log es una **acción autónoma**: no toca a nadie afuera.",
+        "height": 240,
+        "width": 400,
+        "color": 5
+      },
+      "id": "m13b",
+      "name": "Nota audit",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        944,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "h1",
+              "leftValue": "={{ ['ROJO','NO_ELEGIBLE'].includes($json.Semaforo) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "m14",
+      "name": "Requiere aprobacion humana?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Tu postulacion a {{ $('Contexto de la vacante').item.json.puesto }} - Agencia Aurora",
+        "message": "=Hola {{ $json.Nombre }},\n\nGracias por postularte a la busqueda de {{ $('Contexto de la vacante').item.json.puesto }} en Agencia Aurora.\n\n[BORRADOR GENERADO AUTOMATICAMENTE - REVISAR Y COMPLETAR ANTES DE ENVIAR]\n\nResumen interno de la evaluacion (BORRAR ESTE BLOQUE ANTES DE ENVIAR):\n- Semaforo: {{ $json.Semaforo }}\n- Elegible: {{ $json.Elegible }}\n- Motivo: {{ $json.Motivo_Elegibilidad }}\n- Score: {{ $json.Match_Score }} | Confianza: {{ $json.Confianza }}\n\nSaludos,\nEquipo de Seleccion - Agencia Aurora",
+        "options": {
+          "sendTo": "={{ $json.Email }}"
+        }
+      },
+      "id": "m15",
+      "name": "HITL: borrador al candidato",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        -176
+      ],
+      "webhookId": "3f30abc0-731b-40c8-be5c-2f06ef58ddee",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ECd6TgVRaiRGelqT",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Configuracion').item.json.email_equipo }}",
+        "subject": "=[{{ $json.Semaforo }}] {{ $json.Nombre }} - {{ $json.Match_Score }}/100 - {{ $('Contexto de la vacante').item.json.puesto }}",
+        "emailType": "text",
+        "message": "=SHORTLIST ANALITICO - Comite de Seleccion Agentico\n\nCandidato: {{ $json.Nombre }} ({{ $json.Email }})\nVacante: {{ $('Contexto de la vacante').item.json.puesto }} ({{ $json.Vacante_ID }})\nMatch Score: {{ $json.Match_Score }}/100\nConfianza del agente: {{ $json.Confianza }}\nSemaforo: {{ $json.Semaforo }}\n\nFORTALEZAS\n{{ $json.Fortalezas }}\n\nRIESGOS SUGERIDOS PARA LA ENTREVISTA\n{{ $json.Riesgos_Entrevista }}\n\nDESGLOSE DE LA RUBRICA (con evidencia citada del CV)\n{{ $json.Evidencias }}\n\nRAZONAMIENTO DEL AGENTE\n{{ $json.Razonamiento_Agente }}\n\nACCION TOMADA\n{{ $json.Accion_Tomada }}\n\n---\nAgentes: Cribador de Elegibilidad + Evaluador de Scorecard | Modelo: {{ $json.Modelo }}\nEste mensaje es una notificacion interna. Ninguna comunicacion al candidato se envio de forma automatica.",
+        "options": {}
+      },
+      "id": "m16",
+      "name": "Aviso interno al equipo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        64
+      ],
+      "webhookId": "72479374-b5da-4a6c-b548-00c1cf01591d"
+    },
+    {
+      "parameters": {
+        "content": "## La frontera de autonomía\nUn solo IF separa lo que el sistema puede hacer solo de lo que no.\n\n🔴 **Hacia el candidato → BORRADOR.**\nEl nodo Gmail usa `resource: draft`. El mail queda en la bandeja esperando que un humano lo lea, lo edite y lo mande. *\"El agente nunca debe enviar un correo de Rechazado sin que un humano presione un botón de aprobación\"* — lectura del módulo.\n\n🟢 **Hacia adentro → ENVÍO.**\nAvisar al equipo es reversible y no tiene impacto legal ni de marca: el agente lo hace solo.\n\n**El criterio no es la importancia: es la reversibilidad y a quién toca.**",
+        "height": 280,
+        "width": 440,
+        "color": 2
+      },
+      "id": "m16b",
+      "name": "Nota HITL",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('Registrar en Audit Trail').item.json) }}",
+        "options": {}
+      },
+      "id": "m17",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1728,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "pdf1",
+              "leftValue": "={{ Object.keys($binary ?? {}).length > 0 }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "i1",
+      "name": "Llego un PDF?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2384,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloud.llamaindex.ai/api/v1/beta/files",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "purpose",
+              "value": "parse"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "={{ Object.keys($binary)[0] }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "i2",
+      "name": "Subir el CV a LlamaParse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2144,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloud.llamaindex.ai/api/v2/parse",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ file_id: $json.id ?? $json.file_id, tier: 'cost_effective', version: 'latest' }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "i3",
+      "name": "Iniciar el parseo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1920,
+        -160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vY5sGs4DoGGjaLVS",
+          "name": "Llama Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "i4",
+      "name": "Esperar unos segundos",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1696,
+        -160
+      ],
+      "webhookId": "73b1fe31-fbb0-4ab2-ac20-1e20a03121fa"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.cloud.llamaindex.ai/api/v2/parse/{{ $('Iniciar el parseo').first().json.id }}?expand=markdown",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "i5",
+      "name": "Consultar el parseo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1488,
+        -160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vY5sGs4DoGGjaLVS",
+          "name": "Llama Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f1",
+                    "leftValue": "={{ ['ERROR','FAILED','CANCELED','CANCELLED'].includes((($json.job || {}).status) || $json.status || '') || $runIndex >= 19 }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FALLO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "l1",
+                    "leftValue": "={{ ['SUCCESS','COMPLETED','OK'].includes((($json.job || {}).status) || $json.status || '') && (typeof $json.markdown === 'string' ? $json.markdown : (($json.markdown || {}).markdown || '')).trim().length > 0 }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "LISTO"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "ESPERANDO"
+        }
+      },
+      "id": "i6",
+      "name": "Estado del parseo",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1264,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=No se pudo extraer el texto del CV en PDF (estado LlamaParse: {{ (($json.job || {}).status) || $json.status || 'sin respuesta' }}). La postulacion NO se evaluo: preferimos frenar antes que dejar que un agente puntue un CV vacio."
+      },
+      "id": "i7",
+      "name": "No se pudo leer el PDF",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $('Postulacion recibida').first().json.body.candidato_id,\n  \"nombre\": $('Postulacion recibida').first().json.body.nombre,\n  \"email\": $('Postulacion recibida').first().json.body.email,\n  \"vacante_id\": $('Postulacion recibida').first().json.body.vacante_id,\n  \"cv_texto\": (typeof $json.markdown === 'string' ? $json.markdown : (($json.markdown || {}).markdown || '')),\n  \"origen_cv\": \"PDF (LlamaParse)\"\n} }}",
+        "options": {}
+      },
+      "id": "i8",
+      "name": "CV extraido del PDF",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1040,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $json.body.candidato_id,\n  \"nombre\": $json.body.nombre,\n  \"email\": $json.body.email,\n  \"vacante_id\": $json.body.vacante_id,\n  \"cv_texto\": $json.body.cv_texto,\n  \"origen_cv\": \"Texto plano\"\n} }}",
+        "options": {}
+      },
+      "id": "i9",
+      "name": "CV recibido en texto plano",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2144,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Capa de ingesta documental — el CV entra como PDF\nEl formulario de postulación manda un **multipart/form-data**: los datos del candidato viajan como campos de texto y el CV como archivo. El nodo IF mira si llegó un binario y decide el camino; si no llegó ninguno, el flujo sigue aceptando `cv_texto` en JSON plano (útil para probar sin archivos).\n\n**Esto NO es un agente.** Es una herramienta determinista: LlamaParse convierte el PDF a Markdown y nada más. Uno de los criterios del módulo es justamente ese — *no todo lo que está en el flujo tiene que razonar*. Los agentes empiezan recién después, y reciben texto.\n\n**Tres llamadas a la API** (subir el archivo → iniciar el parseo → consultar hasta que termine). El Switch resuelve el polling: `LISTO` sigue, `ESPERANDO` vuelve al Wait, `FALLO` corta con un error explícito. Si el PDF no se puede leer, el sistema **frena**: no evalúa a un candidato con un CV vacío.\n\n`tier: cost_effective` alcanza para un CV de texto. Para CVs escaneados o con foto, subir a `agentic`.",
+        "height": 330,
+        "width": 1480,
+        "color": 6
+      },
+      "id": "i0",
+      "name": "Nota ingesta",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Traer la vacante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer la vacante": {
+      "main": [
+        [
+          {
+            "node": "Contexto de la vacante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto de la vacante": {
+      "main": [
+        [
+          {
+            "node": "Worker: Cribado de Elegibilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Worker: Cribado de Elegibilidad": {
+      "main": [
+        [
+          {
+            "node": "Es elegible?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es elegible?": {
+      "main": [
+        [
+          {
+            "node": "Worker: Scorecard de Match",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: No elegible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Worker: Scorecard de Match": {
+      "main": [
+        [
+          {
+            "node": "Semaforo de decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Semaforo de decision": {
+      "main": [
+        [
+          {
+            "node": "Decision: Verde",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: Amarillo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: Rojo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision: Verde": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Audit Trail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision: Amarillo": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Audit Trail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision: Rojo": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Audit Trail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision: No elegible": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Audit Trail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en Audit Trail": {
+      "main": [
+        [
+          {
+            "node": "Requiere aprobacion humana?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Requiere aprobacion humana?": {
+      "main": [
+        [
+          {
+            "node": "HITL: borrador al candidato",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aviso interno al equipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL: borrador al candidato": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso interno al equipo": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postulacion recibida": {
+      "main": [
+        [
+          {
+            "node": "Llego un PDF?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llego un PDF?": {
+      "main": [
+        [
+          {
+            "node": "Subir el CV a LlamaParse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CV recibido en texto plano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subir el CV a LlamaParse": {
+      "main": [
+        [
+          {
+            "node": "Iniciar el parseo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iniciar el parseo": {
+      "main": [
+        [
+          {
+            "node": "Esperar unos segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar unos segundos": {
+      "main": [
+        [
+          {
+            "node": "Consultar el parseo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar el parseo": {
+      "main": [
+        [
+          {
+            "node": "Estado del parseo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado del parseo": {
+      "main": [
+        [
+          {
+            "node": "No se pudo leer el PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CV extraido del PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar unos segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CV extraido del PDF": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CV recibido en texto plano": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "versionId": "0a78d94e-166d-4954-8696-7fb1deacaac9",
+  "meta": {
+    "instanceId": "200c6fb11a80d89081b1a0c7deaaf1bc5e38a61a9ff184d4aa6004332a53ccd4"
+  },
+  "nodeGroups": [],
+  "id": "AaVPhUU8wrvlwmoP",
+  "tags": []
+}

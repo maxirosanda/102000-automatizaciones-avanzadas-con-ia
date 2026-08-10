@@ -1,0 +1,306 @@
+{
+  "name": "Clase 7 - SETUP - Crear planilla RRHH",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "RRHH - Clase 7",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Vacantes"
+            },
+            {
+              "title": "Candidatos"
+            },
+            {
+              "title": "Evaluaciones"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n2",
+      "name": "Crear planilla",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -384,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {\n  Vacante_ID: 'VAC-001',\n  Puesto: 'Automation Engineer Semi-Senior (n8n + IA)',\n  Empresa: 'Agencia Aurora',\n  Must_Have: '3 o mas anios de experiencia en automatizacion de procesos | Experiencia comprobable con n8n en produccion (no solo pruebas o cursos) | Integracion de APIs REST con autenticacion OAuth2 | Espanol nativo o bilingue',\n  Nice_To_Have: 'Experiencia con RAG o vector stores | Google Workspace avanzado | Background en agencias de marketing | Ingles tecnico de lectura',\n  Notas_Hiring_Manager: 'Buscamos autonomia real: alguien que haya sido duenio de un flujo end-to-end, no un ejecutor de tickets. Priorizamos evidencia de haber puesto flujos en produccion y sostenidos en el tiempo por sobre la cantidad de anios o certificaciones. El equipo es de 4 personas, asi que la comunicacion escrita pesa tanto como la tecnica. Un candidato con menos anios pero con ownership demostrable nos sirve mas que uno con muchos anios de tickets.',\n  Rango_Salarial: 'USD 2200 - 2800 mensuales',\n  Modalidad: 'Hibrido - CABA - 2 dias presenciales'\n} }];"
+      },
+      "id": "n3",
+      "name": "Filas Vacantes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Crear planilla').item.json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Vacantes"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "n4",
+      "name": "Cargar Vacantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const candidatos = [\n  {\n    Candidato_ID: 'CAND-001',\n    Nombre: 'Martina Ochoa',\n    Email: 'martina.ochoa@example.com',\n    Vacante_ID: 'VAC-001',\n    Fecha_Postulacion: '2026-08-01',\n    CV_Texto: 'Automation Engineer. 2021-2026 (5 anios) en Delta Logistics, Buenos Aires: duenia del stack de automatizacion. Disenie y mantengo 34 workflows de n8n en produccion que procesan ~12.000 ejecuciones mensuales de despachos y facturacion. Migre la integracion con el ERP a API REST con OAuth2 (refresh token rotativo) reduciendo los errores de autenticacion de 40 por semana a 2 por mes. 2023: implemente un asistente de consultas sobre 900 documentos de normativa aduanera con vector store (Qdrant) y n8n, usado por 25 despachantes. 2019-2021 (2 anios) en Nube Sur: soporte de integraciones. Ingles tecnico avanzado. Espaniol nativo. Redacto la documentacion interna de todos los flujos del equipo.'\n  },\n  {\n    Candidato_ID: 'CAND-002',\n    Nombre: 'Damian Ferreyra',\n    Email: 'damian.ferreyra@example.com',\n    Vacante_ID: 'VAC-001',\n    Fecha_Postulacion: '2026-08-01',\n    CV_Texto: 'Automation & AI Engineer. Marzo 2024 - Agosto 2026 (2 anios y 5 meses) en Trilogic, consultora lider regional en automatizacion (partner oficial de n8n). Unico responsable del vertical de IA: construi de cero la plataforma de agentes que hoy usan 8 clientes corporativos, 60+ workflows de n8n activos en produccion con SLA de 99,5%. Diseñe el patron manager-worker que la consultora adopto como estandar interno y capacite a 12 desarrolladores. Integraciones OAuth2 con Salesforce, HubSpot y Google Workspace. Certificaciones: n8n Advanced Builder (2025), Google Cloud Professional Architect (2025). Escribo el blog tecnico de la consultora (14 articulos sobre orquestacion de agentes). Espaniol nativo, ingles C1. Antes: 2022-2024 estudios de ingenieria en sistemas (sin experiencia laboral formal en el rubro).'\n  },\n  {\n    Candidato_ID: 'CAND-003',\n    Nombre: 'Sofia Rinaldi',\n    Email: 'sofia.rinaldi@example.com',\n    Vacante_ID: 'VAC-001',\n    Fecha_Postulacion: '2026-08-02',\n    CV_Texto: 'Especialista en automatizacion no-code. 2020-2026 (6 anios) en Grupo Meridiano: lidere el area de automatizacion de procesos administrativos. Construi mas de 200 automatizaciones en Zapier y Make (Integromat) para finanzas, RRHH y compras, con un ahorro documentado de 4.500 horas anuales. Integraciones REST con autenticacion por API key y webhooks. Coordine un equipo de 3 personas. Nunca trabaje con n8n, aunque conozco el concepto y vengo estudiandolo por mi cuenta hace 3 meses. Espaniol nativo. Ingles intermedio.'\n  },\n  {\n    Candidato_ID: 'CAND-004',\n    Nombre: 'Bruno Tessaro',\n    Email: 'bruno.tessaro@example.com',\n    Vacante_ID: 'VAC-001',\n    Fecha_Postulacion: '2026-08-02',\n    CV_Texto: 'Experto en automatizacion, inteligencia artificial y transformacion digital. Amplia experiencia en n8n, Make, Zapier, Python, APIs y agentes de IA. Apasionado por la innovacion y la mejora continua. He trabajado en multiples proyectos de alto impacto para empresas de primer nivel, siempre orientado a resultados. Dominio total de integraciones y arquitecturas cloud. Perfil proactivo, resolutivo y con excelente manejo de equipos. Referencias disponibles a pedido.'\n  }\n];\nreturn candidatos.map(c => ({ json: c }));"
+      },
+      "id": "n5",
+      "name": "Filas Candidatos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Crear planilla').item.json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Candidatos"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "n6",
+      "name": "Cargar Candidatos",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {\n  Fecha: '2026-08-01T00:00:00.000Z',\n  Candidato_ID: 'EJEMPLO',\n  Nombre: 'Fila de ejemplo (se puede borrar)',\n  Email: 'ejemplo@example.com',\n  Vacante_ID: 'VAC-001',\n  Origen_CV: 'PDF (LlamaParse)',\n  Elegible: 'si',\n  Motivo_Elegibilidad: 'Cumple los 4 must-have con evidencia verificable',\n  Tags_Detectados: 'n8n_produccion, oauth2, rag',\n  Anios_Experiencia: 5,\n  Match_Score: 88,\n  Confianza: 0.9,\n  Semaforo: 'VERDE',\n  Fortalezas: 'Ownership end-to-end demostrable',\n  Riesgos_Entrevista: 'Validar profundidad en OAuth2',\n  Evidencias: 'Cita textual del CV que respalda cada punto',\n  Accion_Tomada: 'Shortlist enviado al hiring manager',\n  Razonamiento_Agente: 'Resumen del paso a paso del agente evaluador',\n  Modelo: 'gpt-5-mini'\n} }];"
+      },
+      "id": "n7",
+      "name": "Encabezados Evaluaciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Crear planilla').item.json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Evaluaciones"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "n8",
+      "name": "Cargar Evaluaciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const creado = $('Crear planilla').first().json;\nreturn [{ json: {\n  spreadsheetId: creado.spreadsheetId,\n  spreadsheetUrl: creado.spreadsheetUrl,\n  hojas: (creado.sheets || []).map(s => ({ nombre: s.properties.title, gid: s.properties.sheetId }))\n} }];"
+      },
+      "id": "n9",
+      "name": "Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "s0",
+      "name": "Ejecutar setup",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Correr UNA sola vez, antes de la clase\nCrea la planilla **RRHH - Clase 7** con tres hojas (Vacantes, Candidatos, Evaluaciones) y siembra la vacante y los 4 candidatos de la demo.\n\n**Pasos:**\n1. Asigná la credencial de Google Sheets en los 4 nodos de este flujo.\n2. Dale a *Execute workflow*.\n3. Copiá el spreadsheetId que devuelve el nodo **Resumen**.\n4. Pegalo en los dos nodos de Sheets del Manager, donde dice REEMPLAZAR_SPREADSHEET_ID.\n\nDespués de eso, este workflow se puede archivar.",
+        "height": 280,
+        "width": 900,
+        "color": 4
+      },
+      "id": "s99",
+      "name": "Nota setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Crear planilla": {
+      "main": [
+        [
+          {
+            "node": "Filas Vacantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas Vacantes": {
+      "main": [
+        [
+          {
+            "node": "Cargar Vacantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar Vacantes": {
+      "main": [
+        [
+          {
+            "node": "Filas Candidatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas Candidatos": {
+      "main": [
+        [
+          {
+            "node": "Cargar Candidatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar Candidatos": {
+      "main": [
+        [
+          {
+            "node": "Encabezados Evaluaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encabezados Evaluaciones": {
+      "main": [
+        [
+          {
+            "node": "Cargar Evaluaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar Evaluaciones": {
+      "main": [
+        [
+          {
+            "node": "Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar setup": {
+      "main": [
+        [
+          {
+            "node": "Crear planilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "versionId": "e4b5e162-5fc7-4e35-8115-1d4573617164",
+  "meta": {
+    "instanceId": "200c6fb11a80d89081b1a0c7deaaf1bc5e38a61a9ff184d4aa6004332a53ccd4"
+  },
+  "nodeGroups": [],
+  "id": "liTivcdnswgPONi2",
+  "tags": []
+}

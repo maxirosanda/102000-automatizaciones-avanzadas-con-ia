@@ -1,0 +1,224 @@
+{
+  "name": "Clase 7 - Worker - Cribado de Elegibilidad",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Worker 1 — Agente Cribador de Elegibilidad\n**Lectura del módulo:** \"RRHH agéntico\" → *2. Cribado de candidatos: más allá de las palabras clave*.\n\nEste especialista tiene UNA sola misión: decidir si el candidato pasa la aduana de los **must-have**. No puntúa, no compara, no opina sobre el fit cultural — eso es trabajo del Worker 2.\n\nAplica el **patrón de razonamiento paso a paso (Chain of Thought)** de la lectura: extracción → verificación → contraste con los must-have → decisión de elegibilidad **con la cita textual del CV que la respalda**. Sin cita, el requisito se da por NO cumplido.",
+        "height": 260,
+        "width": 900,
+        "color": 5
+      },
+      "id": "w1n0",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "candidato_id",
+              "type": "any"
+            },
+            {
+              "name": "nombre",
+              "type": "any"
+            },
+            {
+              "name": "email",
+              "type": "any"
+            },
+            {
+              "name": "vacante_id",
+              "type": "any"
+            },
+            {
+              "name": "puesto",
+              "type": "any"
+            },
+            {
+              "name": "cv_texto",
+              "type": "any"
+            },
+            {
+              "name": "must_have",
+              "type": "any"
+            },
+            {
+              "name": "nice_to_have",
+              "type": "any"
+            },
+            {
+              "name": "notas_hiring_manager",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "w1n1",
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Evaluá la ELEGIBILIDAD de esta postulación.\n\n<VACANTE>\nPuesto: {{ $json.puesto }}\nRequisitos MUST-HAVE (separados por |):\n{{ $json.must_have }}\nRequisitos deseables (nice-to-have):\n{{ $json.nice_to_have }}\n</VACANTE>\n\n<CV_CANDIDATO nombre=\"{{ $json.nombre }}\">\n{{ $json.cv_texto }}\n</CV_CANDIDATO>\n\nSeguí el procedimiento de 4 pasos y devolvé el resultado en el formato pedido.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Sos el Agente Cribador de Elegibilidad de un comité de selección. Tu única misión es determinar si un candidato cumple los requisitos MUST-HAVE de una vacante. No puntuás, no rankeás y no evaluás fit cultural: eso lo hace otro especialista.\n\nPROCEDIMIENTO OBLIGATORIO (paso a paso, en este orden):\n1. EXTRACCIÓN: identificá años de experiencia relevante, tecnologías, roles y logros concretos que aparezcan en el CV. Calculá los años a partir de las fechas declaradas; si no hay fechas, indicá que no se pueden verificar.\n2. VERIFICACIÓN: distinguí entre experiencia DECLARADA con evidencia (fechas, empresa, métricas, escala, responsabilidad concreta) y adjetivos sin respaldo (\"experto en\", \"amplia experiencia\", \"dominio total\"). Los adjetivos sin evidencia NO cuentan como cumplimiento.\n3. CONTRASTE: recorré los must-have UNO POR UNO y decidí si cada uno está cumplido, citando textualmente el fragmento del CV que lo respalda. Si no podés citar un fragmento, el requisito NO está cumplido.\n4. DECISIÓN: el candidato es elegible únicamente si TODOS los must-have están cumplidos.\n\nREGLAS DURAS:\n- Nunca inventes experiencia, fechas ni tecnologías que no estén escritas en el CV.\n- No penalices ni premies por nombre, género, edad, nacionalidad, foto, universidad ni cualquier dato personal ajeno a los requisitos. Evaluás evidencia de trabajo, nada más.\n- Un candidato con menos años que los pedidos pero con evidencia fuerte de responsabilidad equivalente NO es elegible por sí solo: marcá el must-have como no cumplido, pero dejá explicado el matiz en el campo motivo para que lo revise un humano.\n- La confianza baja (< 0.7) cuando el CV es ambiguo, no tiene fechas o mezcla roles sin detalle.\n- Escribí siempre en español rioplatense, en tono neutro y profesional."
+        }
+      },
+      "id": "w1n2",
+      "name": "Agente Cribador",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "w1n3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        224
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "RzxWQOIAJ1OcWpXU",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"elegible\": true,\n  \"anios_experiencia_relevante\": 5,\n  \"tags_detectados\": [\"n8n_produccion\", \"oauth2\", \"rag\"],\n  \"must_have\": [\n    {\n      \"requisito\": \"Experiencia comprobable con n8n en produccion\",\n      \"cumple\": true,\n      \"evidencia\": \"cita textual del CV que respalda la decision\"\n    }\n  ],\n  \"motivo\": \"Resumen en una o dos frases de por que es o no es elegible, incluyendo matices que deba revisar un humano.\",\n  \"confianza\": 0.9\n}"
+      },
+      "id": "w1n4",
+      "name": "Formato de salida",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"candidato_id\": $('Start').item.json.candidato_id,\n  \"nombre\": $('Start').item.json.nombre,\n  \"email\": $('Start').item.json.email,\n  \"vacante_id\": $('Start').item.json.vacante_id,\n  \"elegible\": $json.output.elegible,\n  \"anios_experiencia_relevante\": $json.output.anios_experiencia_relevante,\n  \"tags_detectados\": ($json.output.tags_detectados || []).join(', '),\n  \"must_have_detalle\": ($json.output.must_have || []).map(m => (m.cumple ? '[OK] ' : '[NO] ') + m.requisito + ' -> ' + m.evidencia).join(' || '),\n  \"motivo\": $json.output.motivo,\n  \"confianza\": $json.output.confianza,\n  \"agente\": \"Cribador de Elegibilidad\",\n  \"modelo\": \"gpt-5-mini\"\n} }}",
+        "options": {}
+      },
+      "id": "w1n5",
+      "name": "Contrato de salida",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Contrato de datos JSON\nEl worker no devuelve \"lo que salga del modelo\": aplana la respuesta a un **contrato fijo** que el Manager sabe leer.\n\nEs el requisito de la pre-entrega: *\"qué tipo de datos JSON entrega a quién\"*. Si mañana cambia el modelo o el prompt, el contrato no se mueve.",
+        "height": 200,
+        "width": 420,
+        "color": 3
+      },
+      "id": "w1n6",
+      "name": "Nota contrato",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        384
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Agente Cribador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Cribador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formato de salida": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente Cribador",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Cribador": {
+      "main": [
+        [
+          {
+            "node": "Contrato de salida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "versionId": "3e049b7d-9ea3-40ad-af4a-0996b9c61c6e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "200c6fb11a80d89081b1a0c7deaaf1bc5e38a61a9ff184d4aa6004332a53ccd4"
+  },
+  "nodeGroups": [],
+  "id": "g2F0dmQv0cp0KW8x",
+  "tags": []
+}

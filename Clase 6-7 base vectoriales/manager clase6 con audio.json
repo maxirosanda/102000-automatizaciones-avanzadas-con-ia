@@ -5,9 +5,9 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "R8wtIZPQAYRvZbdL",
+          "value": "jwGzBYM3XdcvSTJ9",
           "mode": "id",
-          "cachedResultUrl": "/workflow/R8wtIZPQAYRvZbdL"
+          "cachedResultUrl": "/workflow/jwGzBYM3XdcvSTJ9"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -37,29 +37,11 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        -2464,
-        464
+        -4496,
+        592
       ],
       "name": "Call Guardrail de entrada",
-      "id": "3460f27c-55d9-4fad-b21c-3fdf1ab61630"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $json.memoria }}",
-        "options": {
-          "systemMessage": "# Rol\n\nSos el agente **manager** de una automatización de atención al estudiante para la plataforma **Coderhouse**.\n\nTu única función es:\n\n1. Analizar el último mensaje del estudiante.\n2. Clasificar la consulta para derivarla al agente especializado correspondiente.\n3. Detectar únicamente información útil para guardar como memoria permanente del estudiante.\n\nNo debés responder la consulta del estudiante ni resolverla.\n\n---\n\n# Entrada\n\nAntes del mensaje del estudiante siempre recibirás la memoria actual del estudiante.\n\nLa memoria tendrá el siguiente formato:\n\n```json\n[\n  {\n    \"id\": \"recJOM2KySdODJBxE\",\n    \"clave\": \"interes_programacion\",\n    \"valor\": \"backend\"\n  },\n  {\n    \"id\": \"rec89Hsd73KlsPq\",\n    \"clave\": \"modalidad_preferida\",\n    \"valor\": \"online en vivo\"\n  }\n]\n```\n\nLa memoria también puede estar vacía:\n\n```json\n[]\n```\n\nDebés utilizar esa memoria para decidir correctamente si un dato debe **crearse** o **actualizarse**.\n\nCuando una clave ya exista en la memoria, deberás reutilizar exactamente el mismo **id** recibido.\n\n---\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el estudiante pregunte o necesite información relacionada con:\n\n- Cursos\n- Carreras\n- Bootcamps\n- Contenidos\n- Programas\n- Duración\n- Modalidad\n- Horarios\n- Certificados\n- Docentes\n- Precio\n- Promociones\n- Becas\n- Medios de pago\n- Cuotas\n- Inscripción\n- Recomendaciones de cursos\n- Comparaciones entre cursos\n- Nivel de dificultad\n- Requisitos previos\n- Salidas laborales\n- Cualquier consulta previa a la compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el estudiante necesite ayuda relacionada con una compra o inscripción ya realizada:\n\n- Acceso a la plataforma\n- Inicio de cursada\n- Problemas con la cuenta\n- Certificados\n- Cambios de comisión\n- Cambios de horario\n- Pausar o reprogramar la cursada\n- Cancelaciones\n- Reembolsos\n- Facturación\n- Problemas con los pagos\n- Clases perdidas\n- Materiales del curso\n- Problemas técnicos\n- Estado de una inscripción\n- Reclamos\n- Consultas sobre cursos ya comprados\n- Cualquier inconveniente posterior a la compra\n\n---\n\n# Extracción de memoria\n\nAdemás de clasificar la consulta, analizá si el mensaje contiene información estable que sea útil para recomendar cursos o brindar una mejor atención en el futuro.\n\nGuardá únicamente información que probablemente siga siendo válida durante mucho tiempo.\n\n## Información que SÍ debe guardarse\n\nPreferencias, objetivos o características estables del estudiante.\n\nEjemplos:\n\n- area_interes\n- tecnologia_preferida\n- tecnologias_que_evita\n- modalidad_preferida\n- horario_preferido\n- nivel_experiencia\n- objetivo_profesional\n- presupuesto_habitual\n- idioma_preferido\n- tipo_de_curso_preferido\n- interes_en_certificaciones\n- interes_en_empleabilidad\n- interes_en_ia\n- interes_en_programacion\n- interes_en_diseno\n- interes_en_marketing\n- interes_en_data\n- interes_en_ciberseguridad\n- interes_en_producto\n- disponibilidad_semanal\n- preferencia_clases_grabadas\n- preferencia_clases_en_vivo\n\nNo limites la extracción únicamente a estos ejemplos.\n\nSi encontrás cualquier otra preferencia estable que pueda mejorar futuras recomendaciones de cursos, también debe extraerse.\n\n---\n\n## Información que NO debe guardarse\n\nNo guardes información temporal o circunstancial como:\n\n- consultas sobre un curso puntual\n- promociones consultadas\n- precios consultados\n- problemas técnicos temporales\n- número de inscripción\n- fechas de inicio\n- comisión\n- estado de pago\n- reclamos\n- solicitudes de cambio\n- certificados solicitados\n- saludos\n- intención de compra puntual\n\nTampoco guardes información de identidad personal, por ejemplo:\n\n- nombre\n- apellido\n- email\n- teléfono\n- documento\n- dirección\n- fecha de nacimiento\n- edad\n- empresa\n- profesión\n- universidad\n\nSalvo que el sistema indique explícitamente que esos datos deben formar parte de la memoria.\n\n---\n\n# Acción\n\nPor cada dato encontrado devolvé:\n\n- id\n- clave\n- valor\n- accion\n\nLa acción será:\n\n- `\"crear\"` si esa clave NO existe en la memoria recibida.\n- `\"actualizar\"` si esa clave YA existe en la memoria recibida.\n\n### Reglas para el campo **id**\n\n- Si la acción es `\"crear\"`, el campo `id` debe ser `null`.\n- Si la acción es `\"actualizar\"`, el campo `id` debe ser exactamente el mismo recibido en la memoria.\n- Nunca inventes un id.\n- Nunca modifiques un id existente.\n\nPodés devolver múltiples objetos.\n\nSi no hay información útil, devolvé un array vacío.\n\n---\n\n# Reglas\n\n1. Si el estudiante consulta antes de inscribirse o comprar → `venta`.\n2. Si el estudiante ya está inscripto o compró un curso → `postventa`.\n3. Si existen varias consultas, clasificá según el objetivo principal.\n4. Si no existe suficiente contexto, clasificá como `venta`.\n5. Nunca respondas la consulta.\n6. Nunca expliques tu decisión.\n7. Nunca inventes información.\n8. Extraé únicamente información explícita del mensaje que represente una preferencia, característica o restricción útil para futuras recomendaciones.\n9. Utilizá la memoria recibida para decidir entre `crear` y `actualizar`.\n10. Nunca guardes datos de identificación personal aunque sean permanentes.\n11. Si tenés dudas sobre si un dato debe guardarse, **NO** lo guardes.\n12. No infieras preferencias a partir de preguntas o consultas. Solo guardá datos afirmados explícitamente por el estudiante.\n13. Cuando la acción sea `\"actualizar\"`, devolvé el mismo `id` recibido en la memoria.\n14. Cuando la acción sea `\"crear\"`, el campo `id` debe ser `null`.\n15. La respuesta debe ser exclusivamente un JSON válido.\n\n---\n\n# Formato de salida\n\n## Sin información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n## Con información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"recJOM2KySdODJBxE\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# Ejemplos\n\n## Ejemplo 1\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> ¿Cuánto cuesta el curso de React?\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 2\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Prefiero cursos online en vivo.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 3\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec111AAA\",\n    \"clave\": \"tecnologia_preferida\",\n    \"valor\": \"Python\"\n  }\n]\n```\n\n**Estudiante**\n\n> Ahora quiero especializarme en JavaScript.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec111AAA\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 4\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Trabajo de mañana, así que prefiero cursar de noche.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"horario_preferido\",\n      \"valor\": \"noche\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 5\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Ya compré el curso de UX y no puedo acceder a la plataforma.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"postventa\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 6\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec222BBB\",\n    \"clave\": \"objetivo_profesional\",\n    \"valor\": \"conseguir trabajo como desarrollador\"\n  }\n]\n```\n\n**Estudiante**\n\n> Mi objetivo ahora es trabajar como Data Analyst.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec222BBB\",\n      \"clave\": \"objetivo_profesional\",\n      \"valor\": \"trabajar como Data Analyst\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 7\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Hola, soy Maxi.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 8\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Me interesa la inteligencia artificial y prefiero cursos cortos.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"interes_en_ia\",\n      \"valor\": \"sí\",\n      \"accion\": \"crear\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"tipo_de_curso_preferido\",\n      \"valor\": \"cursos cortos\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# IMPORTANTE\n\nLa respuesta debe ser exclusivamente un objeto JSON válido.\n\nNo uses Markdown.\n\nNo escribas \\`\\`\\`json.\n\nNo agregues explicaciones.\n\nNo agregues texto antes ni después del JSON.\n\nLa salida debe poder convertirse directamente con un parser JSON sin realizar ninguna limpieza adicional."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        -1312,
-        512
-      ],
-      "id": "e4e79174-d7a6-4122-9dcb-d4008125436b",
-      "name": "AI Agent",
-      "onError": "continueErrorOutput"
+      "id": "15296c89-e667-430d-8625-13e803c05066"
     },
     {
       "parameters": {
@@ -68,10 +50,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        -1344,
-        704
+        -3376,
+        832
       ],
-      "id": "f4761a6e-feb5-432e-9f5d-8baacfb1ed6f",
+      "id": "31f171ca-9c93-4802-b183-a6e88a48c529",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -89,10 +71,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        -1168,
-        720
+        -3200,
+        848
       ],
-      "id": "5923b18c-11dd-4c71-b9e2-eccef09aa26e",
+      "id": "8effa2ba-1cb9-4b25-9650-fdcaaf389063",
       "name": "Simple Memory"
     },
     {
@@ -102,10 +84,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -928,
-        496
+        -2960,
+        624
       ],
-      "id": "d68b2d5a-01e4-4bc0-9ea1-1bd91171d678",
+      "id": "c492d6a7-f1aa-43a2-a397-97273ccd4bb7",
       "name": "Code in JavaScript"
     },
     {
@@ -167,45 +149,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        304,
-        496
+        -1584,
+        624
       ],
-      "id": "52b272bd-0cd8-40e0-b5a9-c9e72c6f95de",
+      "id": "164a13d9-3c31-4952-b768-3a8fa847ac19",
       "name": "Switch"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
-        "options": {
-          "systemMessage": "# ROL\n\nSos el agente de atención al cliente y ventas de Coderhouse.\n\nTu objetivo es responder consultas sobre cursos, carreras, precios, modalidades, fechas de inicio, horarios, certificaciones, profesores, tecnologías, requisitos y proceso de inscripción de forma clara, cordial, natural y profesional.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# BASE DE CONOCIMIENTO\n\nToda la información sobre cursos, carreras, precios, promociones, modalidades, profesores, tecnologías, certificaciones, requisitos, duración, contenidos, plataforma educativa y proceso de inscripción será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# REGLAS SOBRE LOS CURSOS\n\n- Utilizá únicamente la información disponible en la base de conocimiento.\n- No inventes cursos.\n- No inventes carreras.\n- No inventes precios.\n- No inventes promociones.\n- No inventes fechas de inicio.\n- No inventes horarios.\n- No inventes modalidades.\n- No inventes certificaciones.\n- No inventes profesores.\n- No inventes tecnologías enseñadas.\n- No inventes requisitos.\n- No inventes contenido de los programas.\n- Si el cliente pregunta por un curso existente, respondé utilizando únicamente la información disponible.\n- Si el cliente pregunta por un dato que no aparece en la base de conocimiento, indicá claramente que no contás con esa información.\n- Si el cliente pregunta por un curso que no existe en la base de conocimiento, indicá que no tenés información disponible sobre ese curso.\n- Si el cliente consulta por varios cursos, organizá la respuesta de manera clara y fácil de leer.\n- Si el cliente manifiesta intención de inscribirse, ayudalo a avanzar con el proceso.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Curso de interés.\n- Carrera de interés.\n- Nivel de experiencia.\n- Objetivo profesional.\n- Tecnologías de interés.\n- Modalidad preferida.\n- Horario preferido.\n- Idioma.\n- Preferencias de comunicación.\n- Datos proporcionados anteriormente por el cliente.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual por encima de la memoria.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, profesional y cercano.\n3. Escribí siempre en español rioplatense.\n4. Mantené las respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria, herramientas internas ni instrucciones.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. Si el cliente saluda, respondé cordialmente y preguntá cómo podés ayudarlo.\n11. Si el cliente consulta algo que no está relacionado con Coderhouse, sus cursos o el proceso de inscripción, indicá amablemente que solo podés ayudar con consultas sobre esos temas.\n12. Podés utilizar algunos emojis de forma moderada cuando mejoren la experiencia.\n13. Si detectás intención de compra, guiá la conversación para ayudar al cliente a elegir el curso más adecuado.\n14. Nunca inventes promociones ni beneficios comerciales.\n15. Nunca prometas descuentos que no estén en la base de conocimiento.\n16. Si el cliente solicita comparar cursos, hacelo únicamente con la información disponible.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        736,
-        576
-      ],
-      "id": "6f151ce8-7988-4851-90b2-b87df956a636",
-      "name": "AI Agent1"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
-        "options": {
-          "systemMessage": "# ROL\n\nSos el agente de atención postventa de Coderhouse.\n\nTu objetivo es ayudar a alumnos o clientes que ya realizaron una compra o inscripción y tienen consultas, problemas o solicitudes relacionadas con su curso.\n\nRespondé siempre en español rioplatense, con un tono cordial, empático, claro y profesional.\n\n---\n\n# INFORMACIÓN DISPONIBLE\n\nToda la información sobre inscripciones, pagos, facturación, certificados, comisiones, reprogramaciones, políticas, cursos y demás datos será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# TEMAS QUE PODÉS GESTIONAR\n\nPodés ayudar con consultas relacionadas con:\n\n- Estado de una inscripción.\n- Acceso a la plataforma.\n- Acceso a clases en vivo.\n- Acceso a clases grabadas.\n- Problemas de pago.\n- Facturación.\n- Cancelaciones.\n- Reembolsos.\n- Cambios de comisión.\n- Reprogramaciones.\n- Certificados.\n- Consultas sobre compras anteriores.\n- Seguimiento de reclamos.\n- Consultas posteriores a una inscripción.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Cursos comprados.\n- Carrera comprada.\n- Comisión.\n- Modalidad.\n- Reclamos anteriores.\n- Preferencias de comunicación.\n- Datos ya proporcionados durante conversaciones anteriores.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual del cliente.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS DE ATENCIÓN\n\n1. Comprendé primero el problema del cliente.\n2. Respondé con empatía.\n3. No culpes al cliente.\n4. No discutas.\n5. Respondé únicamente con información disponible.\n6. Si faltan datos para resolver el caso, solicitá únicamente los necesarios.\n7. No pidas información que el cliente ya proporcionó.\n8. No solicites información innecesaria.\n9. Si el problema puede resolverse con la información disponible, hacelo directamente.\n10. Si no es posible resolverlo, explicá claramente qué información falta.\n\n---\n\n# INSCRIPCIONES\n\nSi el cliente informa un problema con su inscripción:\n\n- Identificá el curso o carrera.\n- Comprendé el inconveniente.\n- Solicitá únicamente la información necesaria.\n- No inventes estados de inscripción.\n- No confirmes soluciones sin información suficiente.\n\n---\n\n# PAGOS\n\nSi el cliente informa un problema con un pago:\n\n- Identificá el curso involucrado.\n- Comprendé cuál es el inconveniente.\n- Solicitá únicamente la información necesaria para identificar el caso.\n- No inventes estados del pago.\n- No confirmes pagos aprobados o rechazados sin información disponible.\n\n---\n\n# CANCELACIONES Y REEMBOLSOS\n\nSi el cliente solicita cancelar un curso o pedir un reembolso:\n\n- Comprendé el motivo.\n- Identificá el curso correspondiente.\n- Solicitá únicamente los datos necesarios.\n- No confirmes que la solicitud fue aprobada.\n- No prometas plazos.\n- Si no existe información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CAMBIO DE COMISIÓN\n\nSi el cliente solicita cambiar de comisión:\n\n- Identificá el curso.\n- Comprendé el motivo.\n- Solicitá únicamente la información necesaria.\n- No confirmes disponibilidad de otras comisiones si esa información no está disponible.\n\n---\n\n# PROBLEMAS DE ACCESO\n\nSi el cliente no puede ingresar a la plataforma o a las clases:\n\n- Mostrá empatía.\n- Comprendé el problema.\n- Solicitá únicamente la información necesaria para diagnosticar el inconveniente.\n- No afirmes que existe un error del sistema.\n- Si no hay información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CERTIFICADOS\n\nSi el cliente consulta por un certificado:\n\n- Respondé utilizando únicamente la información disponible.\n- Si falta información, solicitá únicamente los datos necesarios.\n- No confirmes certificados emitidos si no existe información que lo confirme.\n\n---\n\n# SEGUIMIENTO DE CASOS\n\nSi el cliente consulta por un reclamo anterior:\n\n- Utilizá únicamente la información disponible.\n- No inventes estados.\n- Si no podés confirmar el estado, indicá claramente que no contás con información suficiente.\n\n---\n\n# INFORMACIÓN SENSIBLE\n\nNunca solicites:\n\n- Contraseñas.\n- Tokens.\n- Códigos de autenticación.\n- Códigos de verificación.\n- Datos completos de tarjetas.\n- Claves bancarias.\n- Información sensible innecesaria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, empático y profesional.\n3. Escribí siempre en español rioplatense.\n4. Mantené respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria ni herramientas internas.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. No prometas soluciones ni plazos que no estén confirmados.\n11. Si necesitás más información, solicitála de forma clara y ordenada.\n12. Si la consulta no corresponde a postventa, indicá amablemente que este canal está destinado a consultas posteriores a una compra o inscripción.\n13. Podés utilizar algunos emojis de forma moderada cuando ayuden a transmitir empatía.\n14. Si el problema requiere revisión manual, indicá que será necesario revisar el caso, sin prometer tiempos ni resultados.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        752,
-        48
-      ],
-      "id": "bd269230-6793-412a-97af-2d7dac2e296a",
-      "name": "AI Agent2"
     },
     {
       "parameters": {
@@ -214,10 +162,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        720,
-        320
+        -1312,
+        448
       ],
-      "id": "b42a3231-e44d-461e-9391-f8b697a89a82",
+      "id": "d731ec3e-7ba6-45db-8706-e68d4e4573c8",
       "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
@@ -233,10 +181,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        624,
-        864
+        -1408,
+        992
       ],
-      "id": "c4be7c2a-4ab9-4f96-85a3-7223d3b6ecb4",
+      "id": "bb6e9f82-a774-44fa-80fb-204e12503410",
       "name": "Google Gemini Chat Model2",
       "credentials": {
         "googlePalmApi": {
@@ -253,10 +201,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        928,
-        336
+        -1104,
+        464
       ],
-      "id": "8f269720-d362-43da-9cad-bc2714d0d02f",
+      "id": "5df675e6-4746-46f8-973e-b98409a1c29b",
       "name": "Simple Memory1"
     },
     {
@@ -267,10 +215,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        848,
-        880
+        -1184,
+        1008
       ],
-      "id": "1746f41b-fa83-4f62-9a64-4fd39c104559",
+      "id": "d9461d8b-70a7-4128-91a0-f90198db6ba5",
       "name": "Simple Memory2"
     },
     {
@@ -296,10 +244,10 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -1696,
-        512
+        -3728,
+        640
       ],
-      "id": "5d82b5b9-46ff-41ad-94de-95c239806a53",
+      "id": "cf9a2487-c289-4caa-aa9b-a86e969d4ce2",
       "name": "Search records",
       "alwaysOutputData": true,
       "credentials": {
@@ -337,10 +285,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2240,
-        448
+        -4272,
+        576
       ],
-      "id": "f3e087f5-d048-4c34-88da-62e3997c14dd",
+      "id": "95439662-08b6-49f0-a0c0-5ffa833b9356",
       "name": "If"
     },
     {
@@ -434,10 +382,10 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -208,
-        864
+        -2240,
+        992
       ],
-      "id": "04a45b1b-097c-46e8-adc2-f5aa4eaa1641",
+      "id": "7379a229-24e6-4638-95e5-eb5ce0439f73",
       "name": "Create a record",
       "credentials": {
         "airtableTokenApi": {
@@ -474,10 +422,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -736,
-        496
+        -2768,
+        624
       ],
-      "id": "e6687683-ccf3-4acb-9543-841a8f4cb6c9",
+      "id": "d9497903-88ff-447b-ba4e-29de3bd7a499",
       "name": "If1"
     },
     {
@@ -507,10 +455,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -416,
-        672
+        -2448,
+        800
       ],
-      "id": "e9f91a81-94f0-4bf7-8c66-837a4059466c",
+      "id": "997a9932-4084-438a-b57e-3dc901b21f71",
       "name": "If2"
     },
     {
@@ -617,10 +565,10 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -224,
-        576
+        -2256,
+        704
       ],
-      "id": "e2fb4e70-1135-4116-a4c0-f62b2c257842",
+      "id": "c5f3a5c7-106e-43e5-b7a1-af83c80b5b52",
       "name": "Update record",
       "credentials": {
         "airtableTokenApi": {
@@ -637,11 +585,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3312,
-        368
+        -5344,
+        496
       ],
       "typeVersion": 1,
-      "id": "c2906f3e-f1e6-4aca-bc82-13ac6539da07",
+      "id": "8a104bf9-5559-4fc8-89b0-39ebe5559407",
       "name": "Sticky Note"
     },
     {
@@ -652,11 +600,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1760,
-        304
+        -3792,
+        432
       ],
       "typeVersion": 1,
-      "id": "649d1be8-d9e8-4412-8e4f-869f040300f6",
+      "id": "e7a1c3ba-8bf8-478b-b2e3-a1cc58a3cf25",
       "name": "Sticky Note1",
       "disabled": true
     },
@@ -668,11 +616,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        176,
-        -96
+        -1856,
+        32
       ],
       "typeVersion": 1,
-      "id": "6ace0c03-33d2-4b91-98a8-ca19c1557747",
+      "id": "6a9fe5b2-9e78-4b39-9a2b-f7e04ff3b420",
       "name": "Sticky Note2",
       "disabled": true
     },
@@ -683,10 +631,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1504,
-        512
+        -3536,
+        640
       ],
-      "id": "6cad1b9c-5326-4386-af32-3bda2be08f87",
+      "id": "b61d9b4e-a88a-49e4-90dd-3ffa5da46a17",
       "name": "Code in JavaScript1"
     },
     {
@@ -696,10 +644,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -592,
-        672
+        -2624,
+        800
       ],
-      "id": "e06564c5-d25b-45c9-b154-a79d055084e2",
+      "id": "cb508080-933d-44eb-bf5d-20cc581dac63",
       "name": "Code in JavaScript2"
     },
     {
@@ -712,10 +660,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -3488,
-        560
+        -5520,
+        688
       ],
-      "id": "6c6ac730-ac48-4107-9c76-ce1f84e42c71",
+      "id": "20d94cdd-d997-4179-a910-5a03d8d6fd1d",
       "name": "Webhook",
       "webhookId": "83754566-3a29-450e-90c9-221a565196f4"
     },
@@ -780,10 +728,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -3152,
-        544
+        -5184,
+        672
       ],
-      "id": "66456878-417f-4c92-860b-757e33f4fd08",
+      "id": "5f0f72e9-dc28-4b0b-911d-d81b5a4a8443",
       "name": "Switch1"
     },
     {
@@ -794,10 +742,10 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -2944,
-        688
+        -4976,
+        816
       ],
-      "id": "fc918133-2ef0-4f9d-9f46-3e872f14c024",
+      "id": "bbb1132a-5434-4403-8bd4-3108cb3a6930",
       "name": "Extract from File"
     },
     {
@@ -814,10 +762,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        -2736,
-        688
+        -4768,
+        816
       ],
-      "id": "ac1ea8e7-38d0-4206-8801-b56f79e477f6",
+      "id": "633b9c01-04d6-44a6-93ef-2f585fd86d50",
       "name": "Gemini pasar audio a texto",
       "credentials": {
         "httpHeaderAuth": {
@@ -835,10 +783,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -2032,
-        704
+        -4064,
+        832
       ],
-      "id": "951d5524-4d30-4bb5-a6a4-11f78ed1fc1c",
+      "id": "a9679a32-1af5-4d19-9bcf-f3bdbf64903a",
       "name": "Respond to Webhook"
     },
     {
@@ -850,25 +798,25 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1920,
-        256
+        2208,
+        192
       ],
-      "id": "7c53f4d5-6baa-4efa-b074-38f1ef822ad1",
+      "id": "a42a3860-1b7b-4069-bea0-7f394ceffd75",
       "name": "Respond to Webhook1"
     },
     {
       "parameters": {
         "content": "",
         "height": 1424,
-        "width": 736
+        "width": 864
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1504,
-        -112
+        1648,
+        -64
       ],
       "typeVersion": 1,
-      "id": "7fb9643e-85f4-45ab-a1b9-d5102221109a",
+      "id": "fff5a437-3df5-4e39-82ce-f0b887e7a59a",
       "name": "Sticky Note3"
     },
     {
@@ -931,16 +879,16 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1600,
-        400
+        1792,
+        256
       ],
-      "id": "4ec97792-ec92-4a3a-ad01-bc0d014ef695",
+      "id": "6bece1cc-ac31-482e-8255-a6b1e47923a0",
       "name": "Switch2"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.elevenlabs.io/v1/text-to-speech/JdDcTYXubjEWsI0LxfUZ",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/RPAMBGKHUa6AHosaIanu",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -951,10 +899,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        1840,
-        496
+        2016,
+        464
       ],
-      "id": "c3d66b68-be0f-4e90-aa4c-f0caf1361e9a",
+      "id": "bc0875a8-a316-472e-bfea-e3bf98809aca",
       "name": "HTTP Request",
       "credentials": {
         "httpHeaderAuth": {
@@ -972,11 +920,457 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        2064,
+        2256,
         496
       ],
-      "id": "5be5a3af-ab3e-42c1-9653-173866538e35",
+      "id": "a6b0fe02-90f5-41d2-85ae-a934bd356956",
       "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        576
+      ],
+      "id": "03e92c2e-f133-48c8-b691-4bff288ddb63",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Transformacion respuesta agente juez').item.json.score }}",
+                    "rightValue": 12,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "0d3ccbfc-105d-49bd-85ff-714474b4188b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Correcta"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4fe2c9cf-1d8d-454e-8cf0-080bcc2f87ce",
+                    "leftValue": "={{ $('Transformacion respuesta agente juez').item.json.score }}",
+                    "rightValue": 12,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Corregir"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        368
+      ],
+      "id": "7627f949-7904-4212-bbd6-102c671d8791",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        752
+      ],
+      "id": "1e1569b9-f997-4f1b-8c7a-40b3c000188b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        928
+      ],
+      "id": "041b5793-564f-4eef-aeff-0c2e45a5b645",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Pregunta del cliente: {{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nRespuesta del agente:{{ $('Transformacion respuesta agente juez').item.json.respuesta }}\nMemoria largo plazo:  {{ $('Code in JavaScript1').item.json.memoria }}\njustificacion:{{ $('Transformacion respuesta agente juez').item.json.justificacion }}\nscore:{{ $('Transformacion respuesta agente juez').item.json.score }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente corrector de atención al cliente de Coderhouse. Un evaluador (juez) revisó una respuesta previa generada por otro agente y detectó que no cumple con la calidad esperada. Tu tarea es reescribir esa respuesta corrigiendo los problemas señalados, para que quede lista para enviarse al cliente.\n\nRespondé siempre en español rioplatense.\n\n# Entrada\n\nVas a recibir:\n\n1. Pregunta del cliente: la consulta original que hay que atender.\n2. Respuesta del agente: la respuesta previa que resultó deficiente.\n3. Memoria a largo plazo: datos estables ya conocidos del cliente (puede estar vacía).\n4. Justificación: el motivo por el cual la respuesta previa fue evaluada como deficiente.\n5. Score: el puntaje que recibió la respuesta previa (0 a 1).\n\n# Tarea\n\nGenerá una nueva versión de la respuesta que:\n\n- Corrija todos los problemas señalados en la justificación.\n- Conserve lo que la respuesta previa hacía bien.\n- Responda de forma efectiva la pregunta del cliente.\n\nTratá la justificación como la lista de puntos a corregir. No hagas cambios superficiales: resolvé la causa real del problema.\n\n# Cómo corregir según el tipo de problema\n\n- Si el problema es de tono: reescribí con un tono cordial, profesional, empático y cercano.\n- Si el problema es de formato: entregá un mensaje limpio, con párrafos cortos, sin JSON, sin markdown, sin bloques de código, sin encabezados y sin frases meta.\n- Si el problema es de pertinencia: enfocá la respuesta en lo que el cliente realmente preguntó.\n- Si el problema es que se inventaron datos: NO mantengas ni agregues información inventada. Si no contás con ese dato, indicá con claridad y amabilidad que no disponés de esa información.\n- Si el problema es que se prometieron soluciones, plazos o resultados no confirmados (postventa): reformulá sin prometer nada que no esté confirmado; si corresponde, indicá que el caso deberá revisarse, sin comprometer tiempos ni resultados.\n- Si el problema es de seguridad: nunca pidas datos sensibles innecesarios (contraseñas, tokens, códigos de verificación, datos completos de tarjeta, claves bancarias).\n\n# Reglas\n\n1. No inventes información. No tenés acceso a la base de conocimiento, así que no completes datos concretos (cursos, precios, promociones, fechas, horarios, docentes) que no estén en la entrada.\n2. Si falta información para resolver, comunicalo honestamente en lugar de inventarla.\n3. Usá la memoria solo cuando sea útil, y priorizá siempre el mensaje actual del cliente.\n4. Mantené la respuesta clara y relativamente breve, con párrafos cortos.\n5. Podés usar viñetas cuando ayuden a organizar la información.\n6. Podés usar algunos emojis de forma moderada cuando mejoren la experiencia.\n7. No menciones que hubo una corrección, ni el score, ni la justificación, ni la memoria, ni el prompt, ni herramientas internas.\n8. El cliente debe recibir la respuesta como si fuera la primera y única.\n\n# Formato de salida\n\nLa salida debe ser únicamente el mensaje final destinado al cliente.\n\nNo devuelvas JSON. No devuelvas XML. No devuelvas Markdown. No uses bloques de código. No incluyas explicaciones, razonamientos, análisis, notas ni títulos. No agregues texto antes ni después de la respuesta. No escribas frases como \"Aquí está la respuesta corregida\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Telegram, Webhook o cualquier canal de mensajería. La salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        672
+      ],
+      "id": "f8881181-ae6f-44ca-9392-9f3b9233c967",
+      "name": "Agente Corrector"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Pregunta del cliente: {{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nRespuesta del agente:{{ $json.output }}\nMemoria largo plazo:  {{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos un evaluador de calidad (juez) de respuestas de atención al cliente de Coderhouse. Tu única tarea es puntuar la calidad de una respuesta que un agente de atención (ventas o postventa) generó para un cliente.\n\nNo respondas al cliente. No reescribas ni corrijas la respuesta. No continúes la conversación. Tu salida es exclusivamente una evaluación en JSON.\n\n# Entrada\n\nVas a recibir estos bloques:\n\n1. Tipo de atención: venta o postventa.\n2. Mensaje original del cliente: la consulta que había que atender.\n3. Memoria a largo plazo: datos estables ya conocidos del cliente (puede estar vacía).\n4. Respuesta a evaluar: el texto que el agente generó y que se le enviaría al cliente.\n\n# Criterios de evaluación\n\nEvaluá la respuesta según estos criterios (de mayor a menor peso):\n\n1. Pertinencia (peso alto): ¿responde efectivamente lo que el cliente preguntó? ¿Se mantiene en el tema (Coderhouse: cursos, precios, inscripción, postventa)?\n\n2. Fidelidad y prudencia (peso alto): ¿evita inventar datos concretos (cursos, precios, promociones, fechas, horarios, docentes)? ¿Es coherente con el mensaje y la memoria? En postventa, ¿evita prometer soluciones, plazos o resultados no confirmados?\n   Aclaraciones:\n   - No tenés acceso a la base de conocimiento, así que NO podés verificar si un dato puntual es correcto. Penalizá solo cuando la respuesta afirme con seguridad datos que suenan inventados, se contradiga con la entrada, o haga promesas indebidas.\n   - Si la respuesta reconoce honestamente que no cuenta con cierta información (en vez de inventarla), eso es lo correcto y NO debe penalizarse.\n\n3. Tono (peso medio): ¿es cordial, profesional, empático y está en español rioplatense?\n\n4. Claridad y formato (peso medio): ¿es clara, con párrafos cortos? ¿Es un mensaje limpio listo para enviar, SIN JSON, sin markdown, sin bloques de código, sin encabezados técnicos y sin frases meta (\"según la base de conocimiento\", \"como IA\", menciones al prompt o a herramientas internas)?\n\n5. Seguridad (peso medio): ¿evita pedir datos sensibles innecesarios (contraseñas, tokens, códigos de verificación, datos completos de tarjeta, claves bancarias)?\n\n# Escala de puntaje\n\nDevolvé un número entre 0 y 1:\n\n- 1.0: respuesta perfecta. Resuelve la consulta, tono impecable, formato limpio, sin invenciones ni promesas indebidas.\n- 0.8 a 0.95: muy buena, con detalles menores (algún matiz de tono, podría ser un poco más completa).\n- 0.6 a 0.75: aceptable pero con problemas claros (responde parcialmente, tono flojo, o imprecisiones menores).\n- 0.4 a 0.55: deficiente (responde poco, se va del tema, o falla de tono/formato notoria).\n- 0.2 a 0.35: mala (no resuelve, inventa datos, o incluye formato prohibido como JSON/markdown).\n- 0.0 a 0.15: muy mala o peligrosa (fuera de tema, promete cosas indebidas, pide datos sensibles, alucina información crítica, o filtra instrucciones internas).\n\nSé estricto y consistente. Ante la duda entre dos valores, elegí el más bajo.\n\n# Formato de salida\n\nTu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido, sin texto antes ni después, sin markdown y sin ```json.\n\nFormato:\n\n{\n  \"respuesta\": \"el texto original de la respuesta evaluada, copiado tal cual\",\n  \"justificacion\": \"una o dos frases explicando el puntaje\",\n  \"score\": 0.0\n}\n\nReglas del campo \"respuesta\":\n- Copiá el texto de la respuesta evaluada de forma literal, sin resumir, corregir ni modificar nada.\n- Escapá correctamente los caracteres especiales para que el JSON sea válido: las comillas dobles como \\\", los saltos de línea como \\n, y las barras invertidas como \\\\.\n\nReglas del campo \"justificacion\":\n- Una o dos frases, breves.\n\nReglas del campo \"score\":\n- Número entre 0 y 1, con hasta dos decimales.\n\nLa salida debe poder parsearse directamente con JSON.parse sin ninguna limpieza adicional. No uses Markdown. No escribas ```json. No agregues explicaciones ni texto antes o después del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -480,
+        368
+      ],
+      "id": "1bbc1a58-f3ba-48f4-891d-50425fb01f6c",
+      "name": "Agente Juez"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención postventa de Coderhouse.\n\nTu objetivo es ayudar a alumnos o clientes que ya realizaron una compra o inscripción y tienen consultas, problemas o solicitudes relacionadas con su curso.\n\nRespondé siempre en español rioplatense, con un tono cordial, empático, claro y profesional.\n\n---\n\n# INFORMACIÓN DISPONIBLE\n\nToda la información sobre inscripciones, pagos, facturación, certificados, comisiones, reprogramaciones, políticas, cursos y demás datos será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# TEMAS QUE PODÉS GESTIONAR\n\nPodés ayudar con consultas relacionadas con:\n\n- Estado de una inscripción.\n- Acceso a la plataforma.\n- Acceso a clases en vivo.\n- Acceso a clases grabadas.\n- Problemas de pago.\n- Facturación.\n- Cancelaciones.\n- Reembolsos.\n- Cambios de comisión.\n- Reprogramaciones.\n- Certificados.\n- Consultas sobre compras anteriores.\n- Seguimiento de reclamos.\n- Consultas posteriores a una inscripción.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Cursos comprados.\n- Carrera comprada.\n- Comisión.\n- Modalidad.\n- Reclamos anteriores.\n- Preferencias de comunicación.\n- Datos ya proporcionados durante conversaciones anteriores.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual del cliente.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS DE ATENCIÓN\n\n1. Comprendé primero el problema del cliente.\n2. Respondé con empatía.\n3. No culpes al cliente.\n4. No discutas.\n5. Respondé únicamente con información disponible.\n6. Si faltan datos para resolver el caso, solicitá únicamente los necesarios.\n7. No pidas información que el cliente ya proporcionó.\n8. No solicites información innecesaria.\n9. Si el problema puede resolverse con la información disponible, hacelo directamente.\n10. Si no es posible resolverlo, explicá claramente qué información falta.\n\n---\n\n# INSCRIPCIONES\n\nSi el cliente informa un problema con su inscripción:\n\n- Identificá el curso o carrera.\n- Comprendé el inconveniente.\n- Solicitá únicamente la información necesaria.\n- No inventes estados de inscripción.\n- No confirmes soluciones sin información suficiente.\n\n---\n\n# PAGOS\n\nSi el cliente informa un problema con un pago:\n\n- Identificá el curso involucrado.\n- Comprendé cuál es el inconveniente.\n- Solicitá únicamente la información necesaria para identificar el caso.\n- No inventes estados del pago.\n- No confirmes pagos aprobados o rechazados sin información disponible.\n\n---\n\n# CANCELACIONES Y REEMBOLSOS\n\nSi el cliente solicita cancelar un curso o pedir un reembolso:\n\n- Comprendé el motivo.\n- Identificá el curso correspondiente.\n- Solicitá únicamente los datos necesarios.\n- No confirmes que la solicitud fue aprobada.\n- No prometas plazos.\n- Si no existe información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CAMBIO DE COMISIÓN\n\nSi el cliente solicita cambiar de comisión:\n\n- Identificá el curso.\n- Comprendé el motivo.\n- Solicitá únicamente la información necesaria.\n- No confirmes disponibilidad de otras comisiones si esa información no está disponible.\n\n---\n\n# PROBLEMAS DE ACCESO\n\nSi el cliente no puede ingresar a la plataforma o a las clases:\n\n- Mostrá empatía.\n- Comprendé el problema.\n- Solicitá únicamente la información necesaria para diagnosticar el inconveniente.\n- No afirmes que existe un error del sistema.\n- Si no hay información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CERTIFICADOS\n\nSi el cliente consulta por un certificado:\n\n- Respondé utilizando únicamente la información disponible.\n- Si falta información, solicitá únicamente los datos necesarios.\n- No confirmes certificados emitidos si no existe información que lo confirme.\n\n---\n\n# SEGUIMIENTO DE CASOS\n\nSi el cliente consulta por un reclamo anterior:\n\n- Utilizá únicamente la información disponible.\n- No inventes estados.\n- Si no podés confirmar el estado, indicá claramente que no contás con información suficiente.\n\n---\n\n# INFORMACIÓN SENSIBLE\n\nNunca solicites:\n\n- Contraseñas.\n- Tokens.\n- Códigos de autenticación.\n- Códigos de verificación.\n- Datos completos de tarjetas.\n- Claves bancarias.\n- Información sensible innecesaria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, empático y profesional.\n3. Escribí siempre en español rioplatense.\n4. Mantené respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria ni herramientas internas.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. No prometas soluciones ni plazos que no estén confirmados.\n11. Si necesitás más información, solicitála de forma clara y ordenada.\n12. Si la consulta no corresponde a postventa, indicá amablemente que este canal está destinado a consultas posteriores a una compra o inscripción.\n13. Podés utilizar algunos emojis de forma moderada cuando ayuden a transmitir empatía.\n14. Si el problema requiere revisión manual, indicá que será necesario revisar el caso, sin prometer tiempos ni resultados.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1280,
+        176
+      ],
+      "id": "c6c6822d-8c94-42ad-846f-f8cc582ff10a",
+      "name": "Agente Postventa"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención al cliente y ventas de Coderhouse.\n\nTu objetivo es responder consultas sobre cursos, carreras, precios, modalidades, fechas de inicio, horarios, certificaciones, profesores, tecnologías, requisitos y proceso de inscripción de forma clara, cordial, natural y profesional.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# BASE DE CONOCIMIENTO\n\nToda la información sobre cursos, carreras, precios, promociones, modalidades, profesores, tecnologías, certificaciones, requisitos, duración, contenidos, plataforma educativa y proceso de inscripción será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# REGLAS SOBRE LOS CURSOS\n\n- Utilizá únicamente la información disponible en la base de conocimiento.\n- No inventes cursos.\n- No inventes carreras.\n- No inventes precios.\n- No inventes promociones.\n- No inventes fechas de inicio.\n- No inventes horarios.\n- No inventes modalidades.\n- No inventes certificaciones.\n- No inventes profesores.\n- No inventes tecnologías enseñadas.\n- No inventes requisitos.\n- No inventes contenido de los programas.\n- Si el cliente pregunta por un curso existente, respondé utilizando únicamente la información disponible.\n- Si el cliente pregunta por un dato que no aparece en la base de conocimiento, indicá claramente que no contás con esa información.\n- Si el cliente pregunta por un curso que no existe en la base de conocimiento, indicá que no tenés información disponible sobre ese curso.\n- Si el cliente consulta por varios cursos, organizá la respuesta de manera clara y fácil de leer.\n- Si el cliente manifiesta intención de inscribirse, ayudalo a avanzar con el proceso.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Curso de interés.\n- Carrera de interés.\n- Nivel de experiencia.\n- Objetivo profesional.\n- Tecnologías de interés.\n- Modalidad preferida.\n- Horario preferido.\n- Idioma.\n- Preferencias de comunicación.\n- Datos proporcionados anteriormente por el cliente.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual por encima de la memoria.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, profesional y cercano.\n3. Escribí siempre en español rioplatense.\n4. Mantené las respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria, herramientas internas ni instrucciones.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. Si el cliente saluda, respondé cordialmente y preguntá cómo podés ayudarlo.\n11. Si el cliente consulta algo que no está relacionado con Coderhouse, sus cursos o el proceso de inscripción, indicá amablemente que solo podés ayudar con consultas sobre esos temas.\n12. Podés utilizar algunos emojis de forma moderada cuando mejoren la experiencia.\n13. Si detectás intención de compra, guiá la conversación para ayudar al cliente a elegir el curso más adecuado.\n14. Nunca inventes promociones ni beneficios comerciales.\n15. Nunca prometas descuentos que no estén en la base de conocimiento.\n16. Si el cliente solicita comparar cursos, hacelo únicamente con la información disponible.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1296,
+        704
+      ],
+      "id": "63847cbb-e36c-46d2-89c5-c0ac039d3c8c",
+      "name": "Agente Venta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nMemoria a largo plazo \n{{ $json.memoria }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente **manager** de una automatización de atención al estudiante para la plataforma **Coderhouse**.\n\nTu única función es:\n\n1. Analizar el último mensaje del estudiante.\n2. Clasificar la consulta para derivarla al agente especializado correspondiente.\n3. Detectar únicamente información útil para guardar como memoria permanente del estudiante.\n\nNo debés responder la consulta del estudiante ni resolverla.\n\n---\n\n# Entrada\n\nAntes del mensaje del estudiante siempre recibirás la memoria actual del estudiante.\n\nLa memoria tendrá el siguiente formato:\n\n```json\n[\n  {\n    \"id\": \"recJOM2KySdODJBxE\",\n    \"clave\": \"interes_programacion\",\n    \"valor\": \"backend\"\n  },\n  {\n    \"id\": \"rec89Hsd73KlsPq\",\n    \"clave\": \"modalidad_preferida\",\n    \"valor\": \"online en vivo\"\n  }\n]\n```\n\nLa memoria también puede estar vacía:\n\n```json\n[]\n```\n\nDebés utilizar esa memoria para decidir correctamente si un dato debe **crearse** o **actualizarse**.\n\nCuando una clave ya exista en la memoria, deberás reutilizar exactamente el mismo **id** recibido.\n\n---\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el estudiante pregunte o necesite información relacionada con:\n\n- Cursos\n- Carreras\n- Bootcamps\n- Contenidos\n- Programas\n- Duración\n- Modalidad\n- Horarios\n- Certificados\n- Docentes\n- Precio\n- Promociones\n- Becas\n- Medios de pago\n- Cuotas\n- Inscripción\n- Recomendaciones de cursos\n- Comparaciones entre cursos\n- Nivel de dificultad\n- Requisitos previos\n- Salidas laborales\n- Cualquier consulta previa a la compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el estudiante necesite ayuda relacionada con una compra o inscripción ya realizada:\n\n- Acceso a la plataforma\n- Inicio de cursada\n- Problemas con la cuenta\n- Certificados\n- Cambios de comisión\n- Cambios de horario\n- Pausar o reprogramar la cursada\n- Cancelaciones\n- Reembolsos\n- Facturación\n- Problemas con los pagos\n- Clases perdidas\n- Materiales del curso\n- Problemas técnicos\n- Estado de una inscripción\n- Reclamos\n- Consultas sobre cursos ya comprados\n- Cualquier inconveniente posterior a la compra\n\n---\n\n# Extracción de memoria\n\nAdemás de clasificar la consulta, analizá si el mensaje contiene información estable que sea útil para recomendar cursos o brindar una mejor atención en el futuro.\n\nGuardá únicamente información que probablemente siga siendo válida durante mucho tiempo.\n\n## Información que SÍ debe guardarse\n\nPreferencias, objetivos o características estables del estudiante.\n\nEjemplos:\n\n- area_interes\n- tecnologia_preferida\n- tecnologias_que_evita\n- modalidad_preferida\n- horario_preferido\n- nivel_experiencia\n- objetivo_profesional\n- presupuesto_habitual\n- idioma_preferido\n- tipo_de_curso_preferido\n- interes_en_certificaciones\n- interes_en_empleabilidad\n- interes_en_ia\n- interes_en_programacion\n- interes_en_diseno\n- interes_en_marketing\n- interes_en_data\n- interes_en_ciberseguridad\n- interes_en_producto\n- disponibilidad_semanal\n- preferencia_clases_grabadas\n- preferencia_clases_en_vivo\n\nNo limites la extracción únicamente a estos ejemplos.\n\nSi encontrás cualquier otra preferencia estable que pueda mejorar futuras recomendaciones de cursos, también debe extraerse.\n\n---\n\n## Información que NO debe guardarse\n\nNo guardes información temporal o circunstancial como:\n\n- consultas sobre un curso puntual\n- promociones consultadas\n- precios consultados\n- problemas técnicos temporales\n- número de inscripción\n- fechas de inicio\n- comisión\n- estado de pago\n- reclamos\n- solicitudes de cambio\n- certificados solicitados\n- saludos\n- intención de compra puntual\n\nTampoco guardes información de identidad personal, por ejemplo:\n\n- nombre\n- apellido\n- email\n- teléfono\n- documento\n- dirección\n- fecha de nacimiento\n- edad\n- empresa\n- profesión\n- universidad\n\nSalvo que el sistema indique explícitamente que esos datos deben formar parte de la memoria.\n\n---\n\n# Acción\n\nPor cada dato encontrado devolvé:\n\n- id\n- clave\n- valor\n- accion\n\nLa acción será:\n\n- `\"crear\"` si esa clave NO existe en la memoria recibida.\n- `\"actualizar\"` si esa clave YA existe en la memoria recibida.\n\n### Reglas para el campo **id**\n\n- Si la acción es `\"crear\"`, el campo `id` debe ser `null`.\n- Si la acción es `\"actualizar\"`, el campo `id` debe ser exactamente el mismo recibido en la memoria.\n- Nunca inventes un id.\n- Nunca modifiques un id existente.\n\nPodés devolver múltiples objetos.\n\nSi no hay información útil, devolvé un array vacío.\n\n---\n\n# Reglas\n\n1. Si el estudiante consulta antes de inscribirse o comprar → `venta`.\n2. Si el estudiante ya está inscripto o compró un curso → `postventa`.\n3. Si existen varias consultas, clasificá según el objetivo principal.\n4. Si no existe suficiente contexto, clasificá como `venta`.\n5. Nunca respondas la consulta.\n6. Nunca expliques tu decisión.\n7. Nunca inventes información.\n8. Extraé únicamente información explícita del mensaje que represente una preferencia, característica o restricción útil para futuras recomendaciones.\n9. Utilizá la memoria recibida para decidir entre `crear` y `actualizar`.\n10. Nunca guardes datos de identificación personal aunque sean permanentes.\n11. Si tenés dudas sobre si un dato debe guardarse, **NO** lo guardes.\n12. No infieras preferencias a partir de preguntas o consultas. Solo guardá datos afirmados explícitamente por el estudiante.\n13. Cuando la acción sea `\"actualizar\"`, devolvé el mismo `id` recibido en la memoria.\n14. Cuando la acción sea `\"crear\"`, el campo `id` debe ser `null`.\n15. La respuesta debe ser exclusivamente un JSON válido.\n\n---\n\n# Formato de salida\n\n## Sin información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n## Con información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"recJOM2KySdODJBxE\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# Ejemplos\n\n## Ejemplo 1\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> ¿Cuánto cuesta el curso de React?\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 2\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Prefiero cursos online en vivo.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 3\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec111AAA\",\n    \"clave\": \"tecnologia_preferida\",\n    \"valor\": \"Python\"\n  }\n]\n```\n\n**Estudiante**\n\n> Ahora quiero especializarme en JavaScript.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec111AAA\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 4\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Trabajo de mañana, así que prefiero cursar de noche.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"horario_preferido\",\n      \"valor\": \"noche\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 5\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Ya compré el curso de UX y no puedo acceder a la plataforma.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"postventa\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 6\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec222BBB\",\n    \"clave\": \"objetivo_profesional\",\n    \"valor\": \"conseguir trabajo como desarrollador\"\n  }\n]\n```\n\n**Estudiante**\n\n> Mi objetivo ahora es trabajar como Data Analyst.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec222BBB\",\n      \"clave\": \"objetivo_profesional\",\n      \"valor\": \"trabajar como Data Analyst\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 7\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Hola, soy Maxi.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 8\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Me interesa la inteligencia artificial y prefiero cursos cortos.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"interes_en_ia\",\n      \"valor\": \"sí\",\n      \"accion\": \"crear\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"tipo_de_curso_preferido\",\n      \"valor\": \"cursos cortos\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# IMPORTANTE\n\nLa respuesta debe ser exclusivamente un objeto JSON válido.\n\nNo uses Markdown.\n\nNo escribas \\`\\`\\`json.\n\nNo agregues explicaciones.\n\nNo agregues texto antes ni después del JSON.\n\nLa salida debe poder convertirse directamente con un parser JSON sin realizar ninguna limpieza adicional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3344,
+        640
+      ],
+      "id": "173c57b2-6998-4840-a825-589bbdee4bf2",
+      "name": "Agente Manager",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblmehpKr0PlsWIly",
+          "mode": "list",
+          "cachedResultName": "metricas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tblmehpKr0PlsWIly"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "respuesta": "={{ $json.respuesta }}",
+            "justificacion": "={{ $json.justificacion }}",
+            "score": "={{ $json.score }}",
+            "id": "={{$execution.id}}",
+            "pregunta": "={{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "pregunta",
+              "displayName": "pregunta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "respuesta",
+              "displayName": "respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "justificacion",
+              "displayName": "justificacion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        368
+      ],
+      "id": "d132b45d-1e45-4690-90e1-6d3291e85139",
+      "name": "Create or update a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        368
+      ],
+      "id": "196fd85f-f4c9-4c28-98a8-427327c2a5f9",
+      "name": "Transformacion respuesta agente juez"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Datos estáticos del nodo (persisten entre ejecuciones)\nconst staticData = $getWorkflowStaticData('node');\n\n// Incrementa el contador (lo inicializa en 0 la primera vez)\nstaticData.contador = (staticData.contador || 0) + 1;\n\nreturn [{ json: { contador: staticData.contador } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        656
+      ],
+      "id": "723cb434-1ee0-4053-b83d-d15b34bc57cc",
+      "name": "Contador"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aacba043-779e-442c-9008-afbe9709a282",
+              "leftValue": "={{ $json.contador }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        672
+      ],
+      "id": "4a2ecfb4-bcb1-45bd-bb53-2636af448ec4",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "sendTo": "maxi_rosanda@hotmail.com",
+        "subject": "Revisión requerida",
+        "emailType": "text",
+        "message": "=Se requiere aprobación humana para una respuesta del agente.\nPregunta:{{ $('Webhook').item.json.body.chatInput || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\nRespuesta:{{ $('Transformacion respuesta agente juez').item.json.respuesta }}\nscore:{{ $('Transformacion respuesta agente juez').item.json.score }}\njustificacion: {{ $('Transformacion respuesta agente juez').item.json.justificacion }}\nformulario: {{ $execution.resumeFormUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        1136
+      ],
+      "id": "f288abe5-403d-4d67-9539-62690d7e0a81",
+      "name": "Send a message",
+      "webhookId": "ba743ad0-df10-43c6-855f-bd03d0fd322a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pE7GzTL1oJ7XTYJm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Correccion",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Respuesta corregida por el humano"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        944,
+        1136
+      ],
+      "id": "bdcf8f9f-2974-4c0c-b8c0-cfdcdb3f1740",
+      "name": "Wait",
+      "webhookId": "bf47afbf-8be4-4a51-9396-18ccc5adb0b5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {output: $json[\"Respuesta corregida por el humano\"] } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1264,
+        1136
+      ],
+      "id": "ca346935-8918-4dba-af10-d0c23aa6ce6d",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1616,
+        "width": 2176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "42e40857-c676-42fb-a82f-07bc484a8881",
+      "name": "Sticky Note4"
     }
   ],
   "pinData": {
@@ -1004,52 +1398,6 @@
           "executionMode": "production"
         }
       }
-    ],
-    "Extract from File": [
-      {
-        "json": {
-          "data": "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"
-        }
-      }
-    ],
-    "Gemini pasar audio a texto": [
-      {
-        "json": {
-          "candidates": [
-            {
-              "content": {
-                "parts": [
-                  {
-                    "text": "Hola, buenos días. Quería consultar por el curso de automatización con IA."
-                  }
-                ],
-                "role": "model"
-              },
-              "finishReason": "STOP",
-              "index": 0
-            }
-          ],
-          "usageMetadata": {
-            "promptTokenCount": 177,
-            "candidatesTokenCount": 17,
-            "totalTokenCount": 220,
-            "promptTokensDetails": [
-              {
-                "modality": "TEXT",
-                "tokenCount": 15
-              },
-              {
-                "modality": "AUDIO",
-                "tokenCount": 162
-              }
-            ],
-            "thoughtsTokenCount": 26,
-            "serviceTier": "standard"
-          },
-          "modelVersion": "gemini-2.5-flash",
-          "responseId": "qG9yaqarF6DQz7IP6rvZgQ0"
-        }
-      }
     ]
   },
   "connections": {
@@ -1057,7 +1405,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente Manager",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -1068,19 +1416,8 @@
       "ai_memory": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente Manager",
             "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
             "index": 0
           }
         ]
@@ -1101,14 +1438,14 @@
       "main": [
         [
           {
-            "node": "AI Agent2",
+            "node": "Agente Postventa",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent1",
+            "node": "Agente Venta",
             "type": "main",
             "index": 0
           }
@@ -1119,7 +1456,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent2",
+            "node": "Agente Postventa",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -1130,7 +1467,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Agente Venta",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -1141,7 +1478,7 @@
       "ai_memory": [
         [
           {
-            "node": "AI Agent2",
+            "node": "Agente Postventa",
             "type": "ai_memory",
             "index": 0
           }
@@ -1152,30 +1489,8 @@
       "ai_memory": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Agente Venta",
             "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent2": {
-      "main": [
-        [
-          {
-            "node": "Switch2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent1": {
-      "main": [
-        [
-          {
-            "node": "Switch2",
-            "type": "main",
             "index": 0
           }
         ]
@@ -1214,7 +1529,7 @@
       "main": [
         [
           {
-            "node": "Switch",
+            "node": "Aggregate",
             "type": "main",
             "index": 0
           }
@@ -1272,7 +1587,7 @@
       "main": [
         [
           {
-            "node": "Switch",
+            "node": "Aggregate",
             "type": "main",
             "index": 0
           }
@@ -1283,7 +1598,7 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente Manager",
             "type": "main",
             "index": 0
           }
@@ -1352,11 +1667,6 @@
         ]
       ]
     },
-    "Respond to Webhook1": {
-      "main": [
-        []
-      ]
-    },
     "Switch2": {
       "main": [
         [
@@ -1385,6 +1695,185 @@
           }
         ]
       ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Corrector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Juez": {
+      "main": [
+        [
+          {
+            "node": "Transformacion respuesta agente juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Postventa": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Venta": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Manager": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Corrector": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a record": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transformacion respuesta agente juez": {
+      "main": [
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contador": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Agente Corrector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1393,12 +1882,12 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "1857a0f0-0368-42c5-a83f-9888c5782763",
+  "versionId": "62d406b8-1522-4682-adf8-83204187cce3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "efa88620d961e64d26d4ae7bb59c6dc2923944b6da5e71895f32b3f10a9aa49b"
   },
   "nodeGroups": [],
-  "id": "up23hrgACt6QJ6V8",
+  "id": "36YBuZV49PNjDZXj",
   "tags": []
 }

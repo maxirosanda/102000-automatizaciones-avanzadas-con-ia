@@ -1,0 +1,713 @@
+{
+  "name": "[Modulo 8] - Soporte con Supervisor QA",
+  "nodes": [
+    {
+      "id": "s00",
+      "name": "Nota portada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1300,
+        -460
+      ],
+      "parameters": {
+        "width": 820,
+        "height": 330,
+        "color": 7,
+        "content": "# Soporte con Supervisor QA\n**Módulo 8 &middot; versión mínima del patrón AI-as-a-Judge**\n\nUn cliente escribe una consulta por formulario. Un agente redacta la respuesta usando el manual de la agencia. **Antes de que esa respuesta salga**, un Juez la revisa y le pone un puntaje de 1 a 5. Según el puntaje pasa una de tres cosas: sale, vuelve al agente para corregir, o la mira una persona.\n\nSon dos workflows y quince nodos. Todo lo demás del módulo &mdash; A/B de arquitecturas, costo por corrida, dashboards &mdash; se construye encima de esto.\n\n⚠️ Reemplazá `REEMPLAZAR_EMAIL_EQUIPO` en el nodo *Manual y configuración*."
+      }
+    },
+    {
+      "id": "s01",
+      "name": "Consulta del cliente",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -1240,
+        0
+      ],
+      "parameters": {
+        "formTitle": "Soporte - Agencia Aurora",
+        "formDescription": "Contános tu consulta y te respondemos por mail.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Tu nombre",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tu email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tu consulta",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "Recibimos tu consulta. Te respondemos por mail en breve."
+            }
+          }
+        }
+      },
+      "webhookId": "988d93ac-19a4-41ed-a06d-8e67a4cdfe56"
+    },
+    {
+      "id": "s02",
+      "name": "Manual y configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1000,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"cliente\": $json['Tu nombre'],\n  \"email\": $json['Tu email'],\n  \"consulta\": $json['Tu consulta'],\n  \"critica_previa\": \"\",\n  \"max_reintentos\": 1,\n  \"email_equipo\": \"REEMPLAZAR_EMAIL_EQUIPO\",\n  \"manual\": \"MANUAL DE SERVICIOS Y POLITICAS - AGENCIA AURORA (extracto vigente)\\n\\n1. Horario de atencion: lunes a viernes de 9 a 18 h (GMT-3). No atendemos sabados, domingos ni feriados nacionales.\\n2. Plazo de entrega de una landing page: 10 dias habiles desde que el cliente aprueba el brief.\\n3. Plazo de entrega de una identidad de marca: 20 dias habiles desde la aprobacion del brief.\\n4. Revisiones incluidas: 2 rondas por entregable. La tercera ronda y las siguientes se cotizan aparte.\\n5. Formas de pago: transferencia bancaria o tarjeta de credito. 50% de anticipo al inicio y 50% contra entrega.\\n6. No aceptamos criptomonedas ni ofrecemos planes de cuotas sin interes.\\n7. Cancelaciones: hasta 5 dias habiles antes de la fecha de inicio se reintegra el 100% del anticipo. A partir de ese momento se reintegra el 50%.\\n8. Soporte post-entrega: 30 dias corridos sin cargo desde la entrega final.\\n9. Los proyectos de e-commerce arrancan en USD 3.500. El presupuesto final depende del alcance y lo arma un asesor.\\n10. Trabajamos en espanol y en ingles.\"\n} }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "s02b",
+      "name": "Nota manual",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1060,
+        200
+      ],
+      "parameters": {
+        "width": 440,
+        "height": 280,
+        "color": 3,
+        "content": "### La base de conocimiento entra acá\nDiez líneas de manual en un nodo Set. No hace falta RAG ni base vectorial: el corpus entra cómodo en el prompt.\n\nEso importa para el ejercicio: el Juez puede verificar cada afirmación contra un texto que tiene delante. **Sin una fuente de verdad contra la cual contrastar, un juez LLM no juzga: opina.**\n\nOjo con el punto 9: dice el precio de arranque de un e-commerce, pero **no dice el plazo**. Ese hueco es a propósito."
+      }
+    },
+    {
+      "id": "s03",
+      "name": "Agente de Soporte",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -760,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.critica_previa ? '<CORRECCION_PEDIDA>\\nEl control de calidad rechazo tu respuesta anterior por esto:\\n' + $json.critica_previa + '\\nEscribi una version nueva corrigiendo exactamente ese punto.\\n</CORRECCION_PEDIDA>\\n\\n' : '' }}<MANUAL>\n{{ $json.manual }}\n</MANUAL>\n\nConsulta de {{ $json.cliente }}:\n{{ $json.consulta }}",
+        "options": {
+          "systemMessage": "Sos el asistente de soporte de Agencia Aurora. Respondés las consultas de los clientes apoyándote en el manual de servicios y políticas que te llega en cada mensaje.\n\nTu objetivo es que el cliente se vaya con una respuesta clara y útil. Escribí en español rioplatense, en tono cordial y directo, en cuatro líneas o menos. Sin saludos largos ni firma."
+        }
+      }
+    },
+    {
+      "id": "s04",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -800,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      }
+    },
+    {
+      "id": "s04b",
+      "name": "Nota agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        200
+      ],
+      "parameters": {
+        "width": 440,
+        "height": 280,
+        "color": 4,
+        "content": "### El agente es a propósito del montón\nSu System Prompt tiene cuatro líneas y **no le dice \"solo usá el manual\"** ni \"si no está, decilo\". Es el primer prompt que escribe cualquiera.\n\nNo es trampa: el ejercicio no es construir un agente perfecto, es **demostrar que el supervisor atrapa lo que el agente deja pasar**. Un agente blindado no dejaría ver nada.\n\nDespués, si querés, agregale la regla de evidencia y volvé a correr las mismas cinco consultas. La tabla del log muestra la diferencia: eso es un A/B."
+      }
+    },
+    {
+      "id": "s05",
+      "name": "Juez",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -500,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REEMPLAZAR_ID_DEL_JUEZ",
+          "cachedResultName": "[Modulo 8] - Juez de Respuestas"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "cliente": "={{ $('Manual y configuracion').first().json.cliente }}",
+            "email": "={{ $('Manual y configuracion').first().json.email }}",
+            "consulta": "={{ $('Manual y configuracion').first().json.consulta }}",
+            "respuesta_propuesta": "={{ $json.output }}",
+            "manual": "={{ $('Manual y configuracion').first().json.manual }}",
+            "intento": "={{ $runIndex + 1 }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "s06",
+      "name": "Registrar en el log",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -260,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REEMPLAZAR_ID_DE_LA_DATA_TABLE"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      }
+    },
+    {
+      "id": "s06b",
+      "name": "Nota log",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        200
+      ],
+      "parameters": {
+        "width": 440,
+        "height": 280,
+        "color": 5,
+        "content": "### Se registra ANTES de decidir\nLa fila entra en la tabla antes del Switch, así que quedan las tres rutas: las que salen, las que se corrigen y las que se escalan.\n\nSi solo loguearas lo que sale bien, tu métrica de calidad sería del 100% por construcción.\n\nEs una **Data Table de n8n**, no una planilla: se crea desde el menú lateral y no necesita credenciales. Un paso menos para arrancar."
+      }
+    },
+    {
+      "id": "s07",
+      "name": "Veredicto",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -20,
+        0
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "va",
+                    "leftValue": "={{ $('Juez').first().json.Veredicto }}",
+                    "rightValue": "ACEPTADO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ACEPTADO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "vc",
+                    "leftValue": "={{ $('Juez').first().json.Veredicto }}",
+                    "rightValue": "CORREGIR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CORREGIR"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "RECHAZADO"
+        }
+      }
+    },
+    {
+      "id": "s07b",
+      "name": "Nota rutas",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        200
+      ],
+      "parameters": {
+        "width": 460,
+        "height": 300,
+        "color": 6,
+        "content": "### Las tres rutas\n🟢 **ACEPTADO** (4 o 5) &mdash; la respuesta sale al cliente.\n🟡 **CORREGIR** (3) &mdash; vuelve al agente con la crítica del Juez. **Una sola vez.**\n🔴 **RECHAZADO** (1 o 2) &mdash; se frena y decide una persona.\n\nEl fallback apunta a RECHAZADO **a propósito**. Si el Juez devuelve algo inesperado, el sistema falla hacia el lado seguro: prefiere molestar a alguien antes que mandarle al cliente algo que nadie revisó.\n\nY por eso el Juez devuelve JSON con forma fija: con texto libre, este Switch no podría ramificar nada."
+      }
+    },
+    {
+      "id": "s08",
+      "name": "Quedan reintentos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -160
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ri",
+              "leftValue": "={{ Number($('Juez').first().json.Intento) }}",
+              "rightValue": "={{ Number($('Manual y configuracion').first().json.max_reintentos) }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "s09",
+      "name": "Reintentar con la critica",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -300
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { ...$('Manual y configuracion').first().json, \"critica_previa\": $('Juez').first().json.Critica } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "s09b",
+      "name": "Nota loop",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -520
+      ],
+      "parameters": {
+        "width": 520,
+        "height": 260,
+        "color": 3,
+        "content": "### El loop tiene tope, y el tope no es opcional\nEl número de intento sale de `$runIndex + 1` en el nodo Juez: n8n cuenta solo cuántas veces corrió ese nodo en esta ejecución.\n\nCon `max_reintentos: 1` el agente tiene **una sola oportunidad** de corregirse. Si vuelve a fallar, escala.\n\nUn agente terco y un juez exigente pueden pasarse la pelota indefinidamente, y cada pase cuesta tokens. Por eso la salida del loop es humana, no otro reintento."
+      }
+    },
+    {
+      "id": "s10",
+      "name": "Avisar al equipo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        180
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Manual y configuracion').first().json.email_equipo }}",
+        "subject": "=[REVISAR] Consulta de {{ $('Juez').first().json.Cliente }} - exactitud {{ $('Juez').first().json.Exactitud }}/5",
+        "emailType": "text",
+        "message": "=El control de calidad freno esta respuesta antes de que saliera. El cliente todavia no vio nada.\n\nCLIENTE\n{{ $('Juez').first().json.Cliente }} ({{ $('Juez').first().json.Email }})\n\nCONSULTA\n{{ $('Juez').first().json.Consulta }}\n\nRESPUESTA QUE EL AGENTE QUERIA MANDAR\n{{ $('Juez').first().json.Respuesta_Propuesta }}\n\nQUE OBJETO EL JUEZ\nExactitud: {{ $('Juez').first().json.Exactitud }}/5 - {{ $('Juez').first().json.Categoria_Error }}\n{{ $('Juez').first().json.Critica }}\n\n--------------------------------------------------\nDECIDI VOS. La ejecucion esta pausada esperando que abras uno de estos links:\n\nAPROBAR Y ENVIAR TAL CUAL:\n{{ $execution.resumeUrl }}?accion=aprobar\n\nDESCARTAR (respondes vos a mano):\n{{ $execution.resumeUrl }}?accion=descartar\n\nSi nadie contesta en 24 horas se descarta sola y queda registrada asi.",
+        "options": {}
+      },
+      "webhookId": "26bd596c-a02a-453a-8890-375d72292359"
+    },
+    {
+      "id": "s11",
+      "name": "Esperar decision",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        180
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "GET",
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 24,
+        "resumeUnit": "hours",
+        "options": {}
+      },
+      "webhookId": "0aa87f04-6b4c-4aab-b7be-dd47a9659241"
+    },
+    {
+      "id": "s11b",
+      "name": "Nota HITL",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        380
+      ],
+      "parameters": {
+        "width": 640,
+        "height": 280,
+        "color": 6,
+        "content": "### La ejecución queda realmente pausada\nEl mail sale **antes** del nodo Wait, porque necesita el `$execution.resumeUrl`, que n8n genera recién en tiempo de ejecución. Los dos links son ese mismo webhook con un parámetro distinto.\n\nMientras nadie los abra, la ejecución figura como *waiting* en el historial. Hay **tope de 24 horas**: si nadie responde, el Wait libera el flujo, se descarta y queda registrado. Una pausa sin límite es una ejecución colgada para siempre.\n\nEl enunciado del módulo pide botones de Slack. Es el mismo patrón: un mensaje con botones que apuntan a estas URLs. Acá va por mail porque no necesita una app aparte."
+      }
+    },
+    {
+      "id": "s12",
+      "name": "Registrar la decision",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        180
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REEMPLAZAR_ID_DE_LA_DATA_TABLE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now.toISO() }}",
+            "Cliente": "={{ $('Juez').first().json.Cliente }}",
+            "Email": "={{ $('Juez').first().json.Email }}",
+            "Consulta": "={{ $('Juez').first().json.Consulta }}",
+            "Respuesta_Propuesta": "={{ $('Juez').first().json.Respuesta_Propuesta }}",
+            "Intento": "={{ Number($('Juez').first().json.Intento) }}",
+            "Exactitud": "={{ Number($('Juez').first().json.Exactitud) }}",
+            "Veredicto": "DECISION_HUMANA",
+            "Categoria_Error": "={{ $('Juez').first().json.Categoria_Error }}",
+            "Critica": "={{ $('Juez').first().json.Critica }}",
+            "Accion": "={{ (($json.query || {}).accion === 'aprobar') ? 'Aprobada por una persona y enviada' : 'Descartada (rechazo explicito o vencimiento de las 24 h)' }}",
+            "Modelo": "={{ $('Juez').first().json.Modelo }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      }
+    },
+    {
+      "id": "s13",
+      "name": "Aprobo el humano?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        180
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ap",
+              "leftValue": "={{ ($('Esperar decision').first().json.query || {}).accion }}",
+              "rightValue": "aprobar",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "s14",
+      "name": "Responder al cliente",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1220,
+        -60
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Juez').first().json.Email }}",
+        "subject": "=Re: tu consulta a Agencia Aurora",
+        "emailType": "text",
+        "message": "=Hola {{ $('Juez').first().json.Cliente }},\n\n{{ $('Juez').first().json.Respuesta_Propuesta }}\n\nCualquier otra duda, respondenos este mail.\nEquipo de Soporte - Agencia Aurora",
+        "options": {}
+      },
+      "webhookId": "3fa7b927-dec7-4315-8a2d-bdd35d8b533a"
+    },
+    {
+      "id": "s15",
+      "name": "Descartado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        320
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Consulta del cliente": {
+      "main": [
+        [
+          {
+            "node": "Manual y configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual y configuracion": {
+      "main": [
+        [
+          {
+            "node": "Agente de Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de Soporte",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de Soporte": {
+      "main": [
+        [
+          {
+            "node": "Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Juez": {
+      "main": [
+        [
+          {
+            "node": "Registrar en el log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en el log": {
+      "main": [
+        [
+          {
+            "node": "Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Veredicto": {
+      "main": [
+        [
+          {
+            "node": "Responder al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Quedan reintentos?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisar al equipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quedan reintentos?": {
+      "main": [
+        [
+          {
+            "node": "Reintentar con la critica",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisar al equipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reintentar con la critica": {
+      "main": [
+        [
+          {
+            "node": "Agente de Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al equipo": {
+      "main": [
+        [
+          {
+            "node": "Esperar decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar decision": {
+      "main": [
+        [
+          {
+            "node": "Registrar la decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar la decision": {
+      "main": [
+        [
+          {
+            "node": "Aprobo el humano?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aprobo el humano?": {
+      "main": [
+        [
+          {
+            "node": "Responder al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descartado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  }
+}

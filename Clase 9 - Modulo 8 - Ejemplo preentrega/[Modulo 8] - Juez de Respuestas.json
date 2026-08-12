@@ -1,0 +1,195 @@
+{
+  "name": "[Modulo 8] - Juez de Respuestas",
+  "nodes": [
+    {
+      "id": "sj0",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        -320
+      ],
+      "parameters": {
+        "width": 880,
+        "height": 300,
+        "color": 5,
+        "content": "## El Juez\nUn workflow aparte con **una sola misión**: mirar la respuesta que el agente quiere mandar y decidir si el manual la sostiene.\n\nEstá separado a propósito. Pedirle al mismo agente que revise su propia respuesta no funciona: el modelo tiende a **racionalizar sus propios errores** en vez de encontrarlos. Otro prompt, otra ejecución, otro criterio.\n\nRecibe tres cosas &mdash; la **consulta**, el **manual** y la **respuesta propuesta** &mdash; y devuelve un JSON con forma fija. Sin esa forma fija, el Switch del otro workflow no podría ramificar."
+      }
+    },
+    {
+      "id": "sj1",
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "cliente",
+              "type": "any"
+            },
+            {
+              "name": "email",
+              "type": "any"
+            },
+            {
+              "name": "consulta",
+              "type": "any"
+            },
+            {
+              "name": "respuesta_propuesta",
+              "type": "any"
+            },
+            {
+              "name": "manual",
+              "type": "any"
+            },
+            {
+              "name": "intento",
+              "type": "any"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sj2",
+      "name": "Agente Juez",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -340,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Revisá esta respuesta antes de que salga.\n\n<MANUAL>\n{{ $json.manual }}\n</MANUAL>\n\n<CONSULTA_DEL_CLIENTE>\n{{ $json.consulta }}\n</CONSULTA_DEL_CLIENTE>\n\n<RESPUESTA_QUE_EL_AGENTE_QUIERE_MANDAR>\n{{ $json.respuesta_propuesta }}\n</RESPUESTA_QUE_EL_AGENTE_QUIERE_MANDAR>\n\nAplicá la rúbrica y devolvé el veredicto en el formato pedido.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Sos el control de calidad de un equipo de soporte. Tu única misión es decidir si la respuesta que el agente quiere mandarle a un cliente está sostenida por el manual de la agencia. No respondés la consulta y no reescribís la respuesta.\n\nQUÉ MIRÁS:\n1. Todo dato concreto de la respuesta — plazos, precios, porcentajes, horarios, condiciones — tiene que estar escrito en el manual. Si no está, es un dato inventado, por más razonable que suene.\n2. La respuesta no puede contradecir al manual.\n3. Si el manual no cubre lo que el cliente preguntó, la respuesta correcta es decirlo y ofrecer derivar la consulta a una persona. Inventar algo plausible es peor que admitir que no está.\n4. No premies una respuesta por ser amable o por estar bien escrita. Estás midiendo exactitud, no simpatía.\n\nRÚBRICA — exactitud, entero de 1 a 5:\n5 = Todo lo que afirma está en el manual, y lo que el manual no cubre lo dice abiertamente.\n4 = Todo respaldado, con alguna imprecisión menor de redacción que no cambia el sentido.\n3 = Un dato relevante no está en el manual, o falta una condición importante. Se arregla reescribiendo.\n2 = Hay un dato inventado, o una contradicción directa con el manual.\n1 = Varios datos inventados, o le promete al cliente algo que la agencia no ofrece.\n\nVEREDICTO — sale del puntaje, sin excepciones:\nexactitud 5 o 4 -> \"ACEPTADO\"\nexactitud 3 -> \"CORREGIR\"\nexactitud 2 o 1 -> \"RECHAZADO\"\n\nCATEGORÍA DEL ERROR — elegí exactamente una: NINGUNA, DATO_INVENTADO, CONTRADICE_EL_MANUAL, PROMETE_LO_QUE_NO_HAY, FALTA_UNA_CONDICION.\n\nCAMPO critica: es una instrucción para que el agente corrija, no un comentario. En imperativo, una o dos frases, diciendo qué sacar o qué aclarar. Si el veredicto es ACEPTADO, dejala vacía.\n\nEscribí en español rioplatense, en tono neutro."
+        }
+      }
+    },
+    {
+      "id": "sj3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -380,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      }
+    },
+    {
+      "id": "sj4",
+      "name": "Esquema JSON forzado",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -180,
+        220
+      ],
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"exactitud\": 5,\n  \"veredicto\": \"ACEPTADO\",\n  \"categoria_error\": \"NINGUNA\",\n  \"critica\": \"\"\n}"
+      }
+    },
+    {
+      "id": "sj5",
+      "name": "Fila del log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -100,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"Fecha\": $now.toISO(),\n  \"Cliente\": $('Start').item.json.cliente,\n  \"Email\": $('Start').item.json.email,\n  \"Consulta\": $('Start').item.json.consulta,\n  \"Respuesta_Propuesta\": $('Start').item.json.respuesta_propuesta,\n  \"Intento\": Number($('Start').item.json.intento),\n  \"Exactitud\": $json.output.exactitud,\n  \"Veredicto\": ($json.output.exactitud >= 4 ? 'ACEPTADO' : ($json.output.exactitud == 3 ? 'CORREGIR' : 'RECHAZADO')),\n  \"Categoria_Error\": $json.output.categoria_error,\n  \"Critica\": $json.output.critica,\n  \"Accion\": ($json.output.exactitud >= 4 ? 'Respuesta enviada al cliente' : ($json.output.exactitud == 3 ? 'Devuelta al agente para corregir' : 'Escalada a una persona')),\n  \"Modelo\": \"gpt-5-mini\"\n} }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "sj6",
+      "name": "Nota umbral",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        400
+      ],
+      "parameters": {
+        "width": 620,
+        "height": 260,
+        "color": 3,
+        "content": "### El veredicto se calcula acá, no se le cree al modelo\nEl prompt le explica al Juez cómo derivar el veredicto del puntaje, pero **el que vale se recalcula en esta expresión** a partir de `exactitud`. Si el modelo se distrae y devuelve un veredicto que no coincide con su propio puntaje, el sistema no se entera de nada raro: usa el número.\n\nEste nodo también deja la fila con la forma exacta de la tabla del log, así el otro workflow la inserta sin transformar nada."
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esquema JSON forzado": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Juez": {
+      "main": [
+        [
+          {
+            "node": "Fila del log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  }
+}

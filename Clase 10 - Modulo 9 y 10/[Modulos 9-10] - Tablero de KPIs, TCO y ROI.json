@@ -1,0 +1,172 @@
+{
+  "name": "[Modulos 9-10] - Tablero de KPIs, TCO y ROI",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Tablero de KPIs, TCO y ROI\n\nEste workflow no evalua a nadie: **lee el log de auditoria y lo convierte en las cifras que piden las dos pre-entregas**.\n\nEl Modulo 9 exige un *dashboard operativo no-code alimentado desde n8n* con la tasa de resolucion autonoma, el tiempo ahorrado y la matriz de TCO. El Modulo 10 exige un *brochure* con ROI, payback y un pricing hibrido. Las dos cosas salen del mismo lugar: la Data Table que el Manager escribe en cada ejecucion.\n\nEse es el punto de fondo de los dos modulos juntos: **la gobernanza no es un costo administrativo, es lo que produce los numeros con los que despues se vende el sistema.** Sin el log no hay ROI defendible, y sin ROI defendible no hay presupuesto de escalado.\n\nCorrelo a mano cuando quieras la foto, o cambia el trigger por un Schedule semanal y mandate el resumen por mail.",
+        "height": 420,
+        "width": 900,
+        "color": 3
+      },
+      "id": "t0",
+      "name": "Nota portada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -464
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "t1",
+      "name": "Correr el tablero",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"environment\": \"staging\",\n  \"minutos_por_cv_a_mano\": 15,\n  \"costo_hora_reclutador_usd\": 14,\n  \"volumen_mensual_postulaciones\": 400,\n  \"costo_setup_usd\": 3000,\n  \"retainer_mensual_usd\": 500,\n  \"horas_soporte_mensual\": 4,\n  \"costo_hora_soporte_usd\": 60\n} }}",
+        "options": {}
+      },
+      "id": "t2",
+      "name": "Parametros del caso de negocio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gdN7CzQWjLkNjAkw"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "environment",
+              "keyValue": "={{ $json.environment }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "t3",
+      "name": "Traer el log del entorno",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convierte el log de auditoria en las tres tablas que piden las pre-entregas.\n// Todo lo que sale de aca es rastreable hasta una fila con trace_id: eso es lo que\n// diferencia un caso de negocio defendible de una diapositiva con numeros lindos.\n\nconst p = $('Parametros del caso de negocio').first().json;\nconst filas = $input.all().map(i => i.json).filter(r => r && r.trace_id);\n\nif (filas.length === 0) {\n  return [{ json: { aviso: 'El log todavia no tiene filas para el entorno ' + p.environment + '. Corre el Manager al menos una vez.' } }];\n}\n\n// Una evaluacion = una fila escrita por el agente. Las filas de resolucion humana\n// no son evaluaciones nuevas: son la segunda mitad de una que ya se conto.\nconst evaluaciones = filas.filter(r => r.decidido_por === 'agente');\nconst resoluciones = filas.filter(r => r.decidido_por === 'humano');\nconst total = evaluaciones.length;\n\nconst cuenta = (campo) => evaluaciones.reduce((acc, r) => {\n  const k = r[campo] || 'sin_dato';\n  acc[k] = (acc[k] || 0) + 1;\n  return acc;\n}, {});\n\n// --- KPIs OPERATIVOS (Dimension 1 de la pre-entrega del M9) ---\nconst autonomas = evaluaciones.filter(r => r.nivel_autonomia === 'AUTONOMO').length;\nconst con_humano = evaluaciones.filter(r => r.nivel_autonomia === 'APROBACION_HUMANA').length;\nconst bloqueadas = evaluaciones.filter(r => r.injection_detectada === true).length;\nconst confianzas = evaluaciones.map(r => Number(r.confianza || 0)).filter(n => n > 0);\nconst latencias = evaluaciones.map(r => Number(r.latencia_ms || 0)).filter(n => n > 0);\nconst prom = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;\n\n// --- COSTO (TCO) ---\nconst costo_total = evaluaciones.reduce((a, r) => a + Number(r.costo_usd || 0), 0);\nconst costo_prom = total ? costo_total / total : 0;\nconst tokens_in = evaluaciones.reduce((a, r) => a + Number(r.tokens_in || 0), 0);\nconst tokens_out = evaluaciones.reduce((a, r) => a + Number(r.tokens_out || 0), 0);\n\n// El escenario real de la mezcla, en vez de multiplicar el peor caso por el volumen.\nconst escenarios = cuenta('escenario');\nconst inferencia_mensual = costo_prom * Number(p.volumen_mensual_postulaciones);\nconst soporte_mensual = Number(p.horas_soporte_mensual) * Number(p.costo_hora_soporte_usd);\nconst tco_mensual = inferencia_mensual + soporte_mensual + Number(p.retainer_mensual_usd);\n\n// --- BASELINE Y ROI (Dimension 1 del M9 y criterio del M10) ---\n// El modulo es explicito: si el cliente no sabe cuanto tarda hoy su equipo, no hay bono.\nconst horas_manual_mes = (Number(p.minutos_por_cv_a_mano) * Number(p.volumen_mensual_postulaciones)) / 60;\nconst costo_manual_mes = horas_manual_mes * Number(p.costo_hora_reclutador_usd);\n// Los amarillos y las aprobaciones siguen consumiendo tiempo humano, pero de revision (3 min), no de lectura.\nconst tasa_autonoma = total ? autonomas / total : 0;\nconst horas_revision_mes = ((1 - tasa_autonoma) * Number(p.volumen_mensual_postulaciones) * 3) / 60;\nconst costo_revision_mes = horas_revision_mes * Number(p.costo_hora_reclutador_usd);\nconst ahorro_mensual = costo_manual_mes - costo_revision_mes - tco_mensual;\nconst roi_mensual = tco_mensual ? ahorro_mensual / tco_mensual : 0;\nconst payback_meses = ahorro_mensual > 0 ? Number(p.costo_setup_usd) / ahorro_mensual : null;\n\nconst r2 = (n) => Math.round(n * 100) / 100;\nconst r4 = (n) => Math.round(n * 10000) / 10000;\n\nreturn [{\n  json: {\n    entorno: p.environment,\n    muestra: { evaluaciones: total, resoluciones_humanas: resoluciones.length, filas_totales: filas.length },\n\n    kpis_operativos: {\n      tasa_resolucion_autonoma_pct: r2(tasa_autonoma * 100),\n      evaluaciones_con_intervencion_humana: con_humano,\n      postulaciones_bloqueadas_por_seguridad: bloqueadas,\n      confianza_promedio: r2(prom(confianzas)),\n      latencia_promedio_seg: r2(prom(latencias) / 1000),\n      distribucion_semaforo: cuenta('semaforo')\n    },\n\n    matriz_tco: {\n      tokens_entrada: tokens_in,\n      tokens_salida: tokens_out,\n      metodo_costo: 'estimacion_chars_4 (declarado, no medido)',\n      costo_por_evaluacion_usd: r4(costo_prom),\n      distribucion_escenarios: escenarios,\n      proyeccion_1000_evaluaciones_usd: r2(costo_prom * 1000),\n      inferencia_mensual_usd: r2(inferencia_mensual),\n      soporte_mensual_usd: r2(soporte_mensual),\n      retainer_mensual_usd: Number(p.retainer_mensual_usd),\n      tco_mensual_usd: r2(tco_mensual)\n    },\n\n    caso_de_negocio: {\n      baseline_horas_mes: r2(horas_manual_mes),\n      baseline_costo_mes_usd: r2(costo_manual_mes),\n      horas_de_revision_que_quedan: r2(horas_revision_mes),\n      capacidad_liberada_horas_mes: r2(horas_manual_mes - horas_revision_mes),\n      ahorro_neto_mensual_usd: r2(ahorro_mensual),\n      roi_mensual_pct: r2(roi_mensual * 100),\n      payback_meses: payback_meses ? r2(payback_meses) : 'no se recupera con estos supuestos',\n      nota: 'La capacidad liberada NO es ahorro en nomina salvo que se reduzca dotacion. Se presenta como capacidad para absorber mas volumen sin sumar gente.'\n    },\n\n    advertencia: 'Los costos de inferencia son una ESTIMACION por 4 caracteres = 1 token con precios de ejemplo. Antes de presentar esto a un cliente hay que reemplazarlos por los precios vigentes del proveedor y contrastar contra la factura real.'\n  }\n}];"
+      },
+      "id": "t4",
+      "name": "Calcular KPIs, TCO y ROI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Lo que este nodo produce, mapeado a la correccion\n\n**Pre-entrega M9 · Dimension 1** (35 % de la nota)\n`kpis_operativos` es el dashboard con KPIs. `matriz_tco` es la matriz de costo total. `caso_de_negocio` es el ROI contra baseline.\n\n**Pre-entrega M9 · Dimension 2** (35 %)\nLa fuente es la Data Table con `trace_id`: el tablero demuestra que el esquema de logs sirve para algo, que es lo que separa un buen entregable de una lista de campos inventada.\n\n**Pre-entrega M10 · Modelos comerciales** (20 %)\n`costo_por_evaluacion_usd` y `tco_mensual_usd` son el piso del retainer. Nunca cotizar un retainer por debajo del costo operativo: es la advertencia textual del modulo.\n\n**Pre-entrega M10 · Plan de implementacion** (20 %)\n`tasa_resolucion_autonoma_pct` es la metrica que decide cuando pasar de fase. Si en Fase 2 esa tasa se mantiene alta y las aprobaciones humanas casi nunca corrigen al agente, esta la evidencia para proponer la Fase 3.",
+        "height": 420,
+        "width": 640,
+        "color": 4
+      },
+      "id": "t5",
+      "name": "Nota kpis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Tres decisiones de calculo que conviene poder defender\n\n**1. Se cuentan evaluaciones, no filas.** Una postulacion aprobada a mano escribe dos filas con el mismo `trace_id`. Contar filas inflaria el volumen y bajaria artificialmente el costo por evaluacion.\n\n**2. La capacidad liberada no se presenta como ahorro de nomina.** Es la respuesta correcta de la autoevaluacion del M10: 100 horas ahorradas no bajan el sueldo de nadie si no se despide a nadie. Se presentan como capacidad para absorber mas volumen.\n\n**3. El tiempo humano no baja a cero.** Las revisiones siguen costando 3 minutos por caso. Un ROI que asume cero intervencion humana es el que un CFO desarma en la primera pregunta.\n\nY el campo `advertencia` viaja siempre en la salida: el costo es estimado y esta declarado como tal.",
+        "height": 420,
+        "width": 620,
+        "color": 6
+      },
+      "id": "t6",
+      "name": "Nota honestidad",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Correr el tablero": {
+      "main": [
+        [
+          {
+            "node": "Parametros del caso de negocio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parametros del caso de negocio": {
+      "main": [
+        [
+          {
+            "node": "Traer el log del entorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer el log del entorno": {
+      "main": [
+        [
+          {
+            "node": "Calcular KPIs, TCO y ROI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "versionId": "12f50b66-f4ac-41d2-bd71-d78649535e58",
+  "meta": {
+    "instanceId": "200c6fb11a80d89081b1a0c7deaaf1bc5e38a61a9ff184d4aa6004332a53ccd4"
+  },
+  "nodeGroups": [],
+  "id": "OZzdgfhRXrCKKVtI",
+  "tags": []
+}

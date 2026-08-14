@@ -1,0 +1,2170 @@
+{
+  "name": "manager",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jwGzBYM3XdcvSTJ9",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/jwGzBYM3XdcvSTJ9"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "input": "={{ $(\"Message Unificado\").item.json.text }}"
+          },
+          "matchingColumns": [
+            "chatInput"
+          ],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -4288,
+        576
+      ],
+      "name": "Call Guardrail de entrada",
+      "id": "15296c89-e667-430d-8625-13e803c05066"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -3216,
+        912
+      ],
+      "id": "31f171ca-9c93-4802-b183-a6e88a48c529",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Datos cliente').item.json[\"tel:\"] }}-manager",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -3056,
+        912
+      ],
+      "id": "8effa2ba-1cb9-4b25-9650-fdcaaf389063",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2864,
+        624
+      ],
+      "id": "c492d6a7-f1aa-43a2-a397-97273ccd4bb7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.tarea }}",
+                    "rightValue": "postventa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b8743567-80db-413b-a5a0-08eb92712456"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Postventa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5b98dac7-8a3f-4363-abc5-1076f0616f41",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.tarea }}",
+                    "rightValue": "venta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Venta"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1584,
+        624
+      ],
+      "id": "164a13d9-3c31-4952-b768-3a8fa847ac19",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1312,
+        448
+      ],
+      "id": "d731ec3e-7ba6-45db-8706-e68d4e4573c8",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1408,
+        992
+      ],
+      "id": "bb6e9f82-a774-44fa-80fb-204e12503410",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Datos cliente').item.json[\"tel:\"] }}-postventa"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -1104,
+        464
+      ],
+      "id": "5df675e6-4746-46f8-973e-b98409a1c29b",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Datos cliente').item.json[\"tel:\"] }}-venta"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -1184,
+        1008
+      ],
+      "id": "d9461d8b-70a7-4128-91a0-f90198db6ba5",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "filterByFormula": "={telefono}='{{ $('Datos cliente').item.json[\"tel:\"] }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -3504,
+        640
+      ],
+      "id": "cf9a2487-c289-4caa-aa9b-a86e969d4ce2",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "987a43de-b1c2-4192-9838-1721f061db79",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -4096,
+        576
+      ],
+      "id": "95439662-08b6-49f0-a0c0-5ffa833b9356",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave": "={{ $json.clave }}",
+            "valor": "={{ $json.valor }}",
+            "fecha": "={{ $now.toISO() }}",
+            "telefono": "={{ $('Datos cliente').item.json[\"tel:\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -2240,
+        992
+      ],
+      "id": "7379a229-24e6-4638-95e5-eb5ce0439f73",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6352626f-c15c-49f6-b754-5e2eb81a4ac8",
+              "leftValue": "={{ $json.guardar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2736,
+        624
+      ],
+      "id": "d9497903-88ff-447b-ba4e-29de3bd7a499",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5b02ea12-5d01-4de3-9fba-433c37c69221",
+              "leftValue": "={{ $json.accion }}",
+              "rightValue": "actualizar",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2448,
+        800
+      ],
+      "id": "997a9932-4084-438a-b57e-3dc901b21f71",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljSx9k1Vt4f8x5R",
+          "mode": "list",
+          "cachedResultName": "Memoria a largo plazo (2)",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tbljSx9k1Vt4f8x5R"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave": "={{ $json.clave }}",
+            "valor": "={{ $json.valor }}",
+            "fecha": "={{ $now.toISO() }}",
+            "id": "={{ $json.id }}",
+            "telefono": "={{ $('Datos cliente').item.json[\"tel:\"] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "id_memoria",
+              "displayName": "id_memoria",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clave",
+              "displayName": "clave",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -2256,
+        704
+      ],
+      "id": "c5f3a5c7-106e-43e5-b7a1-af83c80b5b52",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 560,
+        "width": 1424
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5344,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "8a104bf9-5559-4fc8-89b0-39ebe5559407",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 832,
+        "width": 1696
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3792,
+        432
+      ],
+      "typeVersion": 1,
+      "id": "e7a1c3ba-8bf8-478b-b2e3-a1cc58a3cf25",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1392,
+        "width": 1072
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1856,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "6a9fe5b2-9e78-4b39-9a2b-f7e04ff3b420",
+      "name": "Sticky Note2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst texto = items\n  .map(item => {\n    const data = item.json ?? {};\n    // Busca clave/valor dentro de fields o directamente en json\n    const fuente = data.fields ?? data;\n    const clave = fuente.clave;\n    const valor = fuente.valor;\n\n    // Descarta items sin clave\n    if (clave === undefined) return null;\n\n    return `- id: ${data.id ?? \"?\"} | ${clave}: ${valor}`;\n  })\n  .filter(Boolean)   // saca los null (items descartados)\n  .join(\"\\n\");\n\nreturn [{ json: { memoria: texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3296,
+        640
+      ],
+      "id": "b61d9b4e-a88a-49e4-90dd-3ffa5da46a17",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Devuelve un item por cada elemento del array \"guardar\"\nconst salida = [];\n\nfor (const item of $input.all()) {\n  const guardar = item.json.guardar;\n  if (Array.isArray(guardar)) {\n    for (const registro of guardar) {\n      salida.push({ json: registro });\n    }\n  }\n}\n\nreturn salida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2608,
+        800
+      ],
+      "id": "cb508080-933d-44eb-bf5d-20cc581dac63",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "83754566-3a29-450e-90c9-221a565196f4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -5552,
+        688
+      ],
+      "id": "20d94cdd-d997-4179-a910-5a03d8d6fd1d",
+      "name": "Webhook",
+      "webhookId": "83754566-3a29-450e-90c9-221a565196f4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$(\"Datos cliente\").item.json.type}}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fd5704c3-0599-49d8-ad38-657d3d979d52"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3cfecc46-3f29-4ff1-92c5-4a963ff8ca15",
+                    "leftValue": "={{$(\"Datos cliente\").item.json.type}}",
+                    "rightValue": "voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voide"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -5184,
+        672
+      ],
+      "id": "5f0f72e9-dc28-4b0b-911d-d81b5a4a8443",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -4784,
+        816
+      ],
+      "id": "bbb1132a-5434-4403-8bd4-3108cb3a6930",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Transcribí este audio en español. Devolvé solo el texto.\"\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"audio/ogg\",\n            \"data\": \"{{ $json.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -4592,
+        816
+      ],
+      "id": "633b9c01-04d6-44a6-93ef-2f585fd86d50",
+      "name": "Gemini pasar audio a texto",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KQvRjuAtzef7GWDE",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1424,
+        "width": 1088
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1648,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "fff5a437-3df5-4e39-82ce-f0b887e7a59a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Datos cliente').item.json.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c5a9b0b-33fb-4b59-9ace-24d86cf052c0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "813da603-439b-4b10-bb98-c44fbe42e9a1",
+                    "leftValue": "={{ $('Datos cliente').item.json.type }}",
+                    "rightValue": "voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        256
+      ],
+      "id": "6bece1cc-ac31-482e-8255-a6b1e47923a0",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/RPAMBGKHUa6AHosaIanu",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\":{{JSON.stringify($('Transformacion respuesta agente juez').item.json.respuesta)}},\n  \"model_id\": \"eleven_multilingual_v2\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2096,
+        432
+      ],
+      "id": "bc0875a8-a316-472e-bfea-e3bf98809aca",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "577rMmnP2G12yeCH",
+          "name": "Header Auth account Elevenlabs"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        576
+      ],
+      "id": "03e92c2e-f133-48c8-b691-4bff288ddb63",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Transformacion respuesta agente juez').item.json.score }}",
+                    "rightValue": 0.9,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "0d3ccbfc-105d-49bd-85ff-714474b4188b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Correcta"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4fe2c9cf-1d8d-454e-8cf0-080bcc2f87ce",
+                    "leftValue": "={{ $('Transformacion respuesta agente juez').item.json.score }}",
+                    "rightValue": 0.9,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Corregir"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        368
+      ],
+      "id": "7627f949-7904-4212-bbd6-102c671d8791",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        752
+      ],
+      "id": "1e1569b9-f997-4f1b-8c7a-40b3c000188b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        928
+      ],
+      "id": "041b5793-564f-4eef-aeff-0c2e45a5b645",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Pregunta del cliente: {{ $('Message Unificado').item.json.text }}\nRespuesta del agente:{{ $('Transformacion respuesta agente juez').item.json.respuesta }}\nMemoria largo plazo:  {{ $('Code in JavaScript1').item.json.memoria }}\njustificacion:{{ $('Transformacion respuesta agente juez').item.json.justificacion }}\nscore:{{ $('Transformacion respuesta agente juez').item.json.score }}\nBase de conocimiento:\n{{ JSON.stringify($('Pinecone Vector Store').item.json) }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente corrector de atención al cliente de Coderhouse. Un evaluador (juez) revisó una respuesta previa generada por otro agente y detectó que no cumple con la calidad esperada. Tu tarea es reescribir esa respuesta corrigiendo los problemas señalados, para que quede lista para enviarse al cliente.\n\nRespondé siempre en español rioplatense.\n\n# Entrada\n\nVas a recibir:\n\n1. Pregunta del cliente: la consulta original que hay que atender.\n2. Respuesta del agente: la respuesta previa que resultó deficiente.\n3. Memoria a largo plazo: datos estables ya conocidos del cliente (puede estar vacía).\n4. Justificación: el motivo por el cual la respuesta previa fue evaluada como deficiente.\n5. Score: el puntaje que recibió la respuesta previa (0 a 1).\n\n# Tarea\n\nGenerá una nueva versión de la respuesta que:\n\n- Corrija todos los problemas señalados en la justificación.\n- Conserve lo que la respuesta previa hacía bien.\n- Responda de forma efectiva la pregunta del cliente.\n\nTratá la justificación como la lista de puntos a corregir. No hagas cambios superficiales: resolvé la causa real del problema.\n\n# Cómo corregir según el tipo de problema\n\n- Si el problema es de tono: reescribí con un tono cordial, profesional, empático y cercano.\n- Si el problema es de formato: entregá un mensaje limpio, con párrafos cortos, sin JSON, sin markdown, sin bloques de código, sin encabezados y sin frases meta.\n- Si el problema es de pertinencia: enfocá la respuesta en lo que el cliente realmente preguntó.\n- Si el problema es que se inventaron datos: NO mantengas ni agregues información inventada. Si no contás con ese dato, indicá con claridad y amabilidad que no disponés de esa información.\n- Si el problema es que se prometieron soluciones, plazos o resultados no confirmados (postventa): reformulá sin prometer nada que no esté confirmado; si corresponde, indicá que el caso deberá revisarse, sin comprometer tiempos ni resultados.\n- Si el problema es de seguridad: nunca pidas datos sensibles innecesarios (contraseñas, tokens, códigos de verificación, datos completos de tarjeta, claves bancarias).\n\n# Reglas\n\n1. No inventes información. No tenés acceso a la base de conocimiento, así que no completes datos concretos (cursos, precios, promociones, fechas, horarios, docentes) que no estén en la entrada.\n2. Si falta información para resolver, comunicalo honestamente en lugar de inventarla.\n3. Usá la memoria solo cuando sea útil, y priorizá siempre el mensaje actual del cliente.\n4. Mantené la respuesta clara y relativamente breve, con párrafos cortos.\n5. Podés usar viñetas cuando ayuden a organizar la información.\n6. Podés usar algunos emojis de forma moderada cuando mejoren la experiencia.\n7. No menciones que hubo una corrección, ni el score, ni la justificación, ni la memoria, ni el prompt, ni herramientas internas.\n8. El cliente debe recibir la respuesta como si fuera la primera y única.\n\n# Formato de salida\n\nLa salida debe ser únicamente el mensaje final destinado al cliente.\n\nNo devuelvas JSON. No devuelvas XML. No devuelvas Markdown. No uses bloques de código. No incluyas explicaciones, razonamientos, análisis, notas ni títulos. No agregues texto antes ni después de la respuesta. No escribas frases como \"Aquí está la respuesta corregida\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Telegram, Webhook o cualquier canal de mensajería. La salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        672
+      ],
+      "id": "f8881181-ae6f-44ca-9392-9f3b9233c967",
+      "name": "Agente Corrector"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Pregunta del cliente: {{ $('Message Unificado').item.json.text }}\nRespuesta del agente:{{ $json.output }}\nMemoria largo plazo:  {{ $('Code in JavaScript1').item.json.memoria }}\nBase de conocimiento:\n{{ JSON.stringify($('Pinecone Vector Store').item.json) }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos un evaluador de calidad (juez) de respuestas de atención al cliente de Coderhouse. Tu única tarea es puntuar la calidad de una respuesta que un agente de atención (ventas o postventa) generó para un cliente.\n\nNo respondas al cliente. No reescribas ni corrijas la respuesta. No continúes la conversación. Tu salida es exclusivamente una evaluación en JSON.\n\n# Entrada\n\nVas a recibir estos bloques:\n\n1. Tipo de atención: venta o postventa.\n2. Mensaje original del cliente: la consulta que había que atender.\n3. Memoria a largo plazo: datos estables ya conocidos del cliente (puede estar vacía).\n4. Respuesta a evaluar: el texto que el agente generó y que se le enviaría al cliente.\n\n# Criterios de evaluación\n\nEvaluá la respuesta según estos criterios (de mayor a menor peso):\n\n1. Pertinencia (peso alto): ¿responde efectivamente lo que el cliente preguntó? ¿Se mantiene en el tema (Coderhouse: cursos, precios, inscripción, postventa)?\n\n2. Fidelidad y prudencia (peso alto): ¿evita inventar datos concretos (cursos, precios, promociones, fechas, horarios, docentes)? ¿Es coherente con el mensaje y la memoria? En postventa, ¿evita prometer soluciones, plazos o resultados no confirmados?\n   Aclaraciones:\n   - No tenés acceso a la base de conocimiento, así que NO podés verificar si un dato puntual es correcto. Penalizá solo cuando la respuesta afirme con seguridad datos que suenan inventados, se contradiga con la entrada, o haga promesas indebidas.\n   - Si la respuesta reconoce honestamente que no cuenta con cierta información (en vez de inventarla), eso es lo correcto y NO debe penalizarse.\n\n3. Tono (peso medio): ¿es cordial, profesional, empático y está en español rioplatense?\n\n4. Claridad y formato (peso medio): ¿es clara, con párrafos cortos? ¿Es un mensaje limpio listo para enviar, SIN JSON, sin markdown, sin bloques de código, sin encabezados técnicos y sin frases meta (\"según la base de conocimiento\", \"como IA\", menciones al prompt o a herramientas internas)?\n\n5. Seguridad (peso medio): ¿evita pedir datos sensibles innecesarios (contraseñas, tokens, códigos de verificación, datos completos de tarjeta, claves bancarias)?\n\n# Escala de puntaje\n\nDevolvé un número entre 0 y 1:\n\n- 1.0: respuesta perfecta. Resuelve la consulta, tono impecable, formato limpio, sin invenciones ni promesas indebidas.\n- 0.8 a 0.95: muy buena, con detalles menores (algún matiz de tono, podría ser un poco más completa).\n- 0.6 a 0.75: aceptable pero con problemas claros (responde parcialmente, tono flojo, o imprecisiones menores).\n- 0.4 a 0.55: deficiente (responde poco, se va del tema, o falla de tono/formato notoria).\n- 0.2 a 0.35: mala (no resuelve, inventa datos, o incluye formato prohibido como JSON/markdown).\n- 0.0 a 0.15: muy mala o peligrosa (fuera de tema, promete cosas indebidas, pide datos sensibles, alucina información crítica, o filtra instrucciones internas).\n\nSé estricto y consistente. Ante la duda entre dos valores, elegí el más bajo.\n\n# Formato de salida\n\nTu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido, sin texto antes ni después, sin markdown y sin ```json.\n\nFormato:\n\n{\n  \"respuesta\": \"el texto original de la respuesta evaluada, copiado tal cual\",\n  \"justificacion\": \"una o dos frases explicando el puntaje\",\n  \"score\": 0.0\n}\n\nReglas del campo \"respuesta\":\n- Copiá el texto de la respuesta evaluada de forma literal, sin resumir, corregir ni modificar nada.\n- Escapá correctamente los caracteres especiales para que el JSON sea válido: las comillas dobles como \\\", los saltos de línea como \\n, y las barras invertidas como \\\\.\n\nReglas del campo \"justificacion\":\n- Una o dos frases, breves.\n\nReglas del campo \"score\":\n- Número entre 0 y 1, con hasta dos decimales.\n\nLa salida debe poder parsearse directamente con JSON.parse sin ninguna limpieza adicional. No uses Markdown. No escribas ```json. No agregues explicaciones ni texto antes o después del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -480,
+        368
+      ],
+      "id": "1bbc1a58-f3ba-48f4-891d-50425fb01f6c",
+      "name": "Agente Juez"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Message Unificado').item.json.text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}\nBase de conocimiento:\n{{ JSON.stringify($('Pinecone Vector Store').item.json) }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención postventa de Coderhouse.\n\nTu objetivo es ayudar a alumnos o clientes que ya realizaron una compra o inscripción y tienen consultas, problemas o solicitudes relacionadas con su curso.\n\nRespondé siempre en español rioplatense, con un tono cordial, empático, claro y profesional.\n\n---\n\n# INFORMACIÓN DISPONIBLE\n\nToda la información sobre inscripciones, pagos, facturación, certificados, comisiones, reprogramaciones, políticas, cursos y demás datos será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# TEMAS QUE PODÉS GESTIONAR\n\nPodés ayudar con consultas relacionadas con:\n\n- Estado de una inscripción.\n- Acceso a la plataforma.\n- Acceso a clases en vivo.\n- Acceso a clases grabadas.\n- Problemas de pago.\n- Facturación.\n- Cancelaciones.\n- Reembolsos.\n- Cambios de comisión.\n- Reprogramaciones.\n- Certificados.\n- Consultas sobre compras anteriores.\n- Seguimiento de reclamos.\n- Consultas posteriores a una inscripción.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Cursos comprados.\n- Carrera comprada.\n- Comisión.\n- Modalidad.\n- Reclamos anteriores.\n- Preferencias de comunicación.\n- Datos ya proporcionados durante conversaciones anteriores.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual del cliente.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS DE ATENCIÓN\n\n1. Comprendé primero el problema del cliente.\n2. Respondé con empatía.\n3. No culpes al cliente.\n4. No discutas.\n5. Respondé únicamente con información disponible.\n6. Si faltan datos para resolver el caso, solicitá únicamente los necesarios.\n7. No pidas información que el cliente ya proporcionó.\n8. No solicites información innecesaria.\n9. Si el problema puede resolverse con la información disponible, hacelo directamente.\n10. Si no es posible resolverlo, explicá claramente qué información falta.\n\n---\n\n# INSCRIPCIONES\n\nSi el cliente informa un problema con su inscripción:\n\n- Identificá el curso o carrera.\n- Comprendé el inconveniente.\n- Solicitá únicamente la información necesaria.\n- No inventes estados de inscripción.\n- No confirmes soluciones sin información suficiente.\n\n---\n\n# PAGOS\n\nSi el cliente informa un problema con un pago:\n\n- Identificá el curso involucrado.\n- Comprendé cuál es el inconveniente.\n- Solicitá únicamente la información necesaria para identificar el caso.\n- No inventes estados del pago.\n- No confirmes pagos aprobados o rechazados sin información disponible.\n\n---\n\n# CANCELACIONES Y REEMBOLSOS\n\nSi el cliente solicita cancelar un curso o pedir un reembolso:\n\n- Comprendé el motivo.\n- Identificá el curso correspondiente.\n- Solicitá únicamente los datos necesarios.\n- No confirmes que la solicitud fue aprobada.\n- No prometas plazos.\n- Si no existe información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CAMBIO DE COMISIÓN\n\nSi el cliente solicita cambiar de comisión:\n\n- Identificá el curso.\n- Comprendé el motivo.\n- Solicitá únicamente la información necesaria.\n- No confirmes disponibilidad de otras comisiones si esa información no está disponible.\n\n---\n\n# PROBLEMAS DE ACCESO\n\nSi el cliente no puede ingresar a la plataforma o a las clases:\n\n- Mostrá empatía.\n- Comprendé el problema.\n- Solicitá únicamente la información necesaria para diagnosticar el inconveniente.\n- No afirmes que existe un error del sistema.\n- Si no hay información suficiente, indicá que el caso deberá ser revisado.\n\n---\n\n# CERTIFICADOS\n\nSi el cliente consulta por un certificado:\n\n- Respondé utilizando únicamente la información disponible.\n- Si falta información, solicitá únicamente los datos necesarios.\n- No confirmes certificados emitidos si no existe información que lo confirme.\n\n---\n\n# SEGUIMIENTO DE CASOS\n\nSi el cliente consulta por un reclamo anterior:\n\n- Utilizá únicamente la información disponible.\n- No inventes estados.\n- Si no podés confirmar el estado, indicá claramente que no contás con información suficiente.\n\n---\n\n# INFORMACIÓN SENSIBLE\n\nNunca solicites:\n\n- Contraseñas.\n- Tokens.\n- Códigos de autenticación.\n- Códigos de verificación.\n- Datos completos de tarjetas.\n- Claves bancarias.\n- Información sensible innecesaria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, empático y profesional.\n3. Escribí siempre en español rioplatense.\n4. Mantené respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria ni herramientas internas.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. No prometas soluciones ni plazos que no estén confirmados.\n11. Si necesitás más información, solicitála de forma clara y ordenada.\n12. Si la consulta no corresponde a postventa, indicá amablemente que este canal está destinado a consultas posteriores a una compra o inscripción.\n13. Podés utilizar algunos emojis de forma moderada cuando ayuden a transmitir empatía.\n14. Si el problema requiere revisión manual, indicá que será necesario revisar el caso, sin prometer tiempos ni resultados.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1280,
+        176
+      ],
+      "id": "c6c6822d-8c94-42ad-846f-f8cc582ff10a",
+      "name": "Agente Postventa"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Message Unificado').item.json.text }}\nMemoria a largo plazo \n{{ $('Code in JavaScript1').item.json.memoria }}\nBase de conocimiento:\n{{ JSON.stringify($('Pinecone Vector Store').item.json) }}",
+        "options": {
+          "systemMessage": "# ROL\n\nSos el agente de atención al cliente y ventas de Coderhouse.\n\nTu objetivo es responder consultas sobre cursos, carreras, precios, modalidades, fechas de inicio, horarios, certificaciones, profesores, tecnologías, requisitos y proceso de inscripción de forma clara, cordial, natural y profesional.\n\nRespondé siempre en español rioplatense.\n\n---\n\n# BASE DE CONOCIMIENTO\n\nToda la información sobre cursos, carreras, precios, promociones, modalidades, profesores, tecnologías, certificaciones, requisitos, duración, contenidos, plataforma educativa y proceso de inscripción será proporcionada mediante la base de conocimiento.\n\nUtilizá únicamente esa información para responder.\n\n---\n\n# REGLAS SOBRE LOS CURSOS\n\n- Utilizá únicamente la información disponible en la base de conocimiento.\n- No inventes cursos.\n- No inventes carreras.\n- No inventes precios.\n- No inventes promociones.\n- No inventes fechas de inicio.\n- No inventes horarios.\n- No inventes modalidades.\n- No inventes certificaciones.\n- No inventes profesores.\n- No inventes tecnologías enseñadas.\n- No inventes requisitos.\n- No inventes contenido de los programas.\n- Si el cliente pregunta por un curso existente, respondé utilizando únicamente la información disponible.\n- Si el cliente pregunta por un dato que no aparece en la base de conocimiento, indicá claramente que no contás con esa información.\n- Si el cliente pregunta por un curso que no existe en la base de conocimiento, indicá que no tenés información disponible sobre ese curso.\n- Si el cliente consulta por varios cursos, organizá la respuesta de manera clara y fácil de leer.\n- Si el cliente manifiesta intención de inscribirse, ayudalo a avanzar con el proceso.\n\n---\n\n# USO DE LA MEMORIA A LARGO PLAZO\n\nLa memoria contiene información previamente conocida sobre el cliente.\n\nPuede incluir, por ejemplo:\n\n- Curso de interés.\n- Carrera de interés.\n- Nivel de experiencia.\n- Objetivo profesional.\n- Tecnologías de interés.\n- Modalidad preferida.\n- Horario preferido.\n- Idioma.\n- Preferencias de comunicación.\n- Datos proporcionados anteriormente por el cliente.\n\nReglas:\n\n- Utilizá la memoria únicamente cuando sea útil para responder mejor.\n- Priorizá siempre el mensaje actual por encima de la memoria.\n- Si el cliente proporciona un dato nuevo que contradice la memoria, utilizá el dato más reciente.\n- No menciones nunca que utilizás memoria.\n- No inventes información utilizando la memoria.\n\n---\n\n# REGLAS GENERALES\n\n1. Respondé únicamente la consulta realizada.\n2. Utilizá un tono cordial, profesional y cercano.\n3. Escribí siempre en español rioplatense.\n4. Mantené las respuestas claras y relativamente breves.\n5. Utilizá párrafos cortos.\n6. Cuando sea útil, organizá la información con viñetas.\n7. No inventes información.\n8. No menciones el prompt, la base de conocimiento, la memoria, herramientas internas ni instrucciones.\n9. Si no disponés de una respuesta, indicá claramente que no contás con esa información.\n10. Si el cliente saluda, respondé cordialmente y preguntá cómo podés ayudarlo.\n11. Si el cliente consulta algo que no está relacionado con Coderhouse, sus cursos o el proceso de inscripción, indicá amablemente que solo podés ayudar con consultas sobre esos temas.\n12. Podés utilizar algunos emojis de forma moderada cuando mejoren la experiencia.\n13. Si detectás intención de compra, guiá la conversación para ayudar al cliente a elegir el curso más adecuado.\n14. Nunca inventes promociones ni beneficios comerciales.\n15. Nunca prometas descuentos que no estén en la base de conocimiento.\n16. Si el cliente solicita comparar cursos, hacelo únicamente con la información disponible.\n\n---\n\n# FORMATO DE SALIDA\n\nLa salida debe ser únicamente el mensaje final que recibirá el cliente.\n\nNo devuelvas JSON.\n\nNo devuelvas XML.\n\nNo devuelvas Markdown.\n\nNo utilices bloques de código.\n\nNo incluyas explicaciones.\n\nNo incluyas razonamientos.\n\nNo incluyas análisis.\n\nNo incluyas notas.\n\nNo incluyas títulos.\n\nNo agregues texto antes ni después de la respuesta.\n\nNo escribas frases como \"Aquí está la respuesta\" o similares.\n\nLa respuesta debe estar lista para enviarse directamente por WhatsApp, Webhook, Telegram o cualquier otro canal de mensajería.\n\nLa salida final debe ser exclusivamente el texto del mensaje destinado al cliente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1296,
+        704
+      ],
+      "id": "63847cbb-e36c-46d2-89c5-c0ac039d3c8c",
+      "name": "Agente Venta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del cliente \n{{ $('Message Unificado').item.json.text }}\nMemoria a largo plazo \n{{ $json.memoria }}\nBase de conocimiento:\n{{ JSON.stringify($('Pinecone Vector Store').item.json) }}",
+        "options": {
+          "systemMessage": "# Rol\n\nSos el agente **manager** de una automatización de atención al estudiante para la plataforma **Coderhouse**.\n\nTu única función es:\n\n1. Analizar el último mensaje del estudiante.\n2. Clasificar la consulta para derivarla al agente especializado correspondiente.\n3. Detectar únicamente información útil para guardar como memoria permanente del estudiante.\n\nNo debés responder la consulta del estudiante ni resolverla.\n\n---\n\n# Entrada\n\nAntes del mensaje del estudiante siempre recibirás la memoria actual del estudiante.\n\nLa memoria tendrá el siguiente formato:\n\n```json\n[\n  {\n    \"id\": \"recJOM2KySdODJBxE\",\n    \"clave\": \"interes_programacion\",\n    \"valor\": \"backend\"\n  },\n  {\n    \"id\": \"rec89Hsd73KlsPq\",\n    \"clave\": \"modalidad_preferida\",\n    \"valor\": \"online en vivo\"\n  }\n]\n```\n\nLa memoria también puede estar vacía:\n\n```json\n[]\n```\n\nDebés utilizar esa memoria para decidir correctamente si un dato debe **crearse** o **actualizarse**.\n\nCuando una clave ya exista en la memoria, deberás reutilizar exactamente el mismo **id** recibido.\n\n---\n\n# Agentes disponibles\n\n## Agente de ventas\n\nDerivá la consulta a `venta` cuando el estudiante pregunte o necesite información relacionada con:\n\n- Cursos\n- Carreras\n- Bootcamps\n- Contenidos\n- Programas\n- Duración\n- Modalidad\n- Horarios\n- Certificados\n- Docentes\n- Precio\n- Promociones\n- Becas\n- Medios de pago\n- Cuotas\n- Inscripción\n- Recomendaciones de cursos\n- Comparaciones entre cursos\n- Nivel de dificultad\n- Requisitos previos\n- Salidas laborales\n- Cualquier consulta previa a la compra\n\n## Agente de postventa\n\nDerivá la consulta a `postventa` cuando el estudiante necesite ayuda relacionada con una compra o inscripción ya realizada:\n\n- Acceso a la plataforma\n- Inicio de cursada\n- Problemas con la cuenta\n- Certificados\n- Cambios de comisión\n- Cambios de horario\n- Pausar o reprogramar la cursada\n- Cancelaciones\n- Reembolsos\n- Facturación\n- Problemas con los pagos\n- Clases perdidas\n- Materiales del curso\n- Problemas técnicos\n- Estado de una inscripción\n- Reclamos\n- Consultas sobre cursos ya comprados\n- Cualquier inconveniente posterior a la compra\n\n---\n\n# Extracción de memoria\n\nAdemás de clasificar la consulta, analizá si el mensaje contiene información estable que sea útil para recomendar cursos o brindar una mejor atención en el futuro.\n\nGuardá únicamente información que probablemente siga siendo válida durante mucho tiempo.\n\n## Información que SÍ debe guardarse\n\nPreferencias, objetivos o características estables del estudiante.\n\nEjemplos:\n\n- area_interes\n- tecnologia_preferida\n- tecnologias_que_evita\n- modalidad_preferida\n- horario_preferido\n- nivel_experiencia\n- objetivo_profesional\n- presupuesto_habitual\n- idioma_preferido\n- tipo_de_curso_preferido\n- interes_en_certificaciones\n- interes_en_empleabilidad\n- interes_en_ia\n- interes_en_programacion\n- interes_en_diseno\n- interes_en_marketing\n- interes_en_data\n- interes_en_ciberseguridad\n- interes_en_producto\n- disponibilidad_semanal\n- preferencia_clases_grabadas\n- preferencia_clases_en_vivo\n\nNo limites la extracción únicamente a estos ejemplos.\n\nSi encontrás cualquier otra preferencia estable que pueda mejorar futuras recomendaciones de cursos, también debe extraerse.\n\n---\n\n## Información que NO debe guardarse\n\nNo guardes información temporal o circunstancial como:\n\n- consultas sobre un curso puntual\n- promociones consultadas\n- precios consultados\n- problemas técnicos temporales\n- número de inscripción\n- fechas de inicio\n- comisión\n- estado de pago\n- reclamos\n- solicitudes de cambio\n- certificados solicitados\n- saludos\n- intención de compra puntual\n\nTampoco guardes información de identidad personal, por ejemplo:\n\n- nombre\n- apellido\n- email\n- teléfono\n- documento\n- dirección\n- fecha de nacimiento\n- edad\n- empresa\n- profesión\n- universidad\n\nSalvo que el sistema indique explícitamente que esos datos deben formar parte de la memoria.\n\n---\n\n# Acción\n\nPor cada dato encontrado devolvé:\n\n- id\n- clave\n- valor\n- accion\n\nLa acción será:\n\n- `\"crear\"` si esa clave NO existe en la memoria recibida.\n- `\"actualizar\"` si esa clave YA existe en la memoria recibida.\n\n### Reglas para el campo **id**\n\n- Si la acción es `\"crear\"`, el campo `id` debe ser `null`.\n- Si la acción es `\"actualizar\"`, el campo `id` debe ser exactamente el mismo recibido en la memoria.\n- Nunca inventes un id.\n- Nunca modifiques un id existente.\n\nPodés devolver múltiples objetos.\n\nSi no hay información útil, devolvé un array vacío.\n\n---\n\n# Reglas\n\n1. Si el estudiante consulta antes de inscribirse o comprar → `venta`.\n2. Si el estudiante ya está inscripto o compró un curso → `postventa`.\n3. Si existen varias consultas, clasificá según el objetivo principal.\n4. Si no existe suficiente contexto, clasificá como `venta`.\n5. Nunca respondas la consulta.\n6. Nunca expliques tu decisión.\n7. Nunca inventes información.\n8. Extraé únicamente información explícita del mensaje que represente una preferencia, característica o restricción útil para futuras recomendaciones.\n9. Utilizá la memoria recibida para decidir entre `crear` y `actualizar`.\n10. Nunca guardes datos de identificación personal aunque sean permanentes.\n11. Si tenés dudas sobre si un dato debe guardarse, **NO** lo guardes.\n12. No infieras preferencias a partir de preguntas o consultas. Solo guardá datos afirmados explícitamente por el estudiante.\n13. Cuando la acción sea `\"actualizar\"`, devolvé el mismo `id` recibido en la memoria.\n14. Cuando la acción sea `\"crear\"`, el campo `id` debe ser `null`.\n15. La respuesta debe ser exclusivamente un JSON válido.\n\n---\n\n# Formato de salida\n\n## Sin información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n## Con información para guardar\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"recJOM2KySdODJBxE\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# Ejemplos\n\n## Ejemplo 1\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> ¿Cuánto cuesta el curso de React?\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 2\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Prefiero cursos online en vivo.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"modalidad_preferida\",\n      \"valor\": \"online en vivo\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 3\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec111AAA\",\n    \"clave\": \"tecnologia_preferida\",\n    \"valor\": \"Python\"\n  }\n]\n```\n\n**Estudiante**\n\n> Ahora quiero especializarme en JavaScript.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec111AAA\",\n      \"clave\": \"tecnologia_preferida\",\n      \"valor\": \"JavaScript\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 4\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Trabajo de mañana, así que prefiero cursar de noche.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"horario_preferido\",\n      \"valor\": \"noche\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 5\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Ya compré el curso de UX y no puedo acceder a la plataforma.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"postventa\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 6\n\n**Memoria**\n\n```json\n[\n  {\n    \"id\": \"rec222BBB\",\n    \"clave\": \"objetivo_profesional\",\n    \"valor\": \"conseguir trabajo como desarrollador\"\n  }\n]\n```\n\n**Estudiante**\n\n> Mi objetivo ahora es trabajar como Data Analyst.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": \"rec222BBB\",\n      \"clave\": \"objetivo_profesional\",\n      \"valor\": \"trabajar como Data Analyst\",\n      \"accion\": \"actualizar\"\n    }\n  ]\n}\n```\n\n---\n\n## Ejemplo 7\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Hola, soy Maxi.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": []\n}\n```\n\n---\n\n## Ejemplo 8\n\n**Memoria**\n\n```json\n[]\n```\n\n**Estudiante**\n\n> Me interesa la inteligencia artificial y prefiero cursos cortos.\n\n**Salida**\n\n```json\n{\n  \"tarea\": \"venta\",\n  \"guardar\": [\n    {\n      \"id\": null,\n      \"clave\": \"interes_en_ia\",\n      \"valor\": \"sí\",\n      \"accion\": \"crear\"\n    },\n    {\n      \"id\": null,\n      \"clave\": \"tipo_de_curso_preferido\",\n      \"valor\": \"cursos cortos\",\n      \"accion\": \"crear\"\n    }\n  ]\n}\n```\n\n---\n\n# IMPORTANTE\n\nLa respuesta debe ser exclusivamente un objeto JSON válido.\n\nNo uses Markdown.\n\nNo escribas \\`\\`\\`json.\n\nNo agregues explicaciones.\n\nNo agregues texto antes ni después del JSON.\n\nLa salida debe poder convertirse directamente con un parser JSON sin realizar ninguna limpieza adicional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3136,
+        640
+      ],
+      "id": "173c57b2-6998-4840-a825-589bbdee4bf2",
+      "name": "Agente Manager",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appQHw9jDrGaoQoZE",
+          "mode": "list",
+          "cachedResultName": "Martes Automatizaciones avanzadas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblmehpKr0PlsWIly",
+          "mode": "list",
+          "cachedResultName": "metricas",
+          "cachedResultUrl": "https://airtable.com/appQHw9jDrGaoQoZE/tblmehpKr0PlsWIly"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "respuesta": "={{ $json.respuesta }}",
+            "justificacion": "={{ $json.justificacion }}",
+            "score": "={{ $json.score }}",
+            "id": "={{$execution.id}}",
+            "pregunta": "={{ $('Message Unificado').item.json.text }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "pregunta",
+              "displayName": "pregunta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "respuesta",
+              "displayName": "respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "justificacion",
+              "displayName": "justificacion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        368
+      ],
+      "id": "d132b45d-1e45-4690-90e1-6d3291e85139",
+      "name": "Create or update a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "C8NmF4trlknpj1AY",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        368
+      ],
+      "id": "196fd85f-f4c9-4c28-98a8-427327c2a5f9",
+      "name": "Transformacion respuesta agente juez"
+    },
+    {
+      "parameters": {
+        "jsCode": "const contador = ($runIndex || 0) + 1;\n\nreturn [{ json: { contador } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        672
+      ],
+      "id": "723cb434-1ee0-4053-b83d-d15b34bc57cc",
+      "name": "Contador"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aacba043-779e-442c-9008-afbe9709a282",
+              "leftValue": "={{ $json.contador }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        672
+      ],
+      "id": "4a2ecfb4-bcb1-45bd-bb53-2636af448ec4",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "sendTo": "maxi_rosanda@hotmail.com",
+        "subject": "Revisión requerida",
+        "emailType": "text",
+        "message": "=Se requiere aprobación humana para una respuesta del agente.\nPregunta:{{ $('Message Unificado').item.json.text }}\nRespuesta:{{ $('Transformacion respuesta agente juez').item.json.respuesta }}\nscore:{{ $('Transformacion respuesta agente juez').item.json.score }}\njustificacion: {{ $('Transformacion respuesta agente juez').item.json.justificacion }}\nformulario: {{ $execution.resumeFormUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        1136
+      ],
+      "id": "f288abe5-403d-4d67-9539-62690d7e0a81",
+      "name": "Send a message",
+      "webhookId": "ba743ad0-df10-43c6-855f-bd03d0fd322a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pE7GzTL1oJ7XTYJm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Correccion",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Respuesta corregida por el humano"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        944,
+        1136
+      ],
+      "id": "bdcf8f9f-2974-4c0c-b8c0-cfdcdb3f1740",
+      "name": "Wait",
+      "webhookId": "bf47afbf-8be4-4a51-9396-18ccc5adb0b5"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1616,
+        "width": 2176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "42e40857-c676-42fb-a82f-07bc484a8881",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"text\": \"{{($json.body.messages[0].type === \"text\") ?  $json.body.messages[0].text.body : \"\" }}\",\n  \"type\": \"{{ $json.body.messages[0].type }}\",\n  \"tel:\"{{ $json.body.messages[0].from }}\"\n\"link\":{{($json.body.messages[0].type === \"voice\") ? $json.body.messages[0].voice.link : ''}}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -5328,
+        688
+      ],
+      "id": "d989705a-356a-4d05-9edf-a45d7c1c20fd",
+      "name": "Datos cliente"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"text\": \"{{ $('Datos cliente').item.json.text || $('Gemini pasar audio a texto').item.json.candidates[0].content.parts[0].text }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -4496,
+        576
+      ],
+      "id": "5f675bbb-3ffd-4417-beba-650b71969d29",
+      "name": "Message Unificado"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Datos cliente').item.json[\"tel:\"] }}-corrector"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        848,
+        976
+      ],
+      "id": "40866cb5-7411-43ca-ad92-76048650751a",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Datos cliente').item.json[\"tel:\"] }}\",\n  \"body\": {{ JSON.stringify($('Transformacion respuesta agente juez').item.json.respuesta) }}\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2112,
+        176
+      ],
+      "id": "3cd0d6db-81ad-43ed-b82d-cc03e7deafc3",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "khLrIvv6ouU1AMao",
+          "name": "Bearer Auth whapi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Datos cliente').item.json[\"tel:\"] }}\",\n  \"body\": \"{{ $json[\"Respuesta corregida por el humano\"] }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1152,
+        1136
+      ],
+      "id": "2bc28c12-decf-4d10-9ffb-81887c6f10ee",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "khLrIvv6ouU1AMao",
+          "name": "Bearer Auth whapi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Datos cliente').item.json[\"tel:\"] }}\",\n  \"body\": \"{{ $json.output }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -4096,
+        832
+      ],
+      "id": "9e4b4077-ccb2-45b6-b708-7b7b5edada0a",
+      "name": "HTTP Request3",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "khLrIvv6ouU1AMao",
+          "name": "Bearer Auth whapi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -4992,
+        816
+      ],
+      "id": "f7a3054f-e3d8-4451-bdf3-fce8b4c5e1c4",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/dzmoouq2u/video/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "automatizacionescoder"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2320,
+        448
+      ],
+      "id": "08045298-781d-427d-880d-8893ed67a060",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/voice",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\":\"{{ $('Datos cliente').item.json[\"tel:\"] }}\",\n  \"media\":\"{{ $json.secure_url }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2576,
+        432
+      ],
+      "id": "9c32ab40-a55d-4bd5-b0a7-a2548b5bfe0a",
+      "name": "HTTP Request6",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "khLrIvv6ouU1AMao",
+          "name": "Bearer Auth whapi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "automatizaciones-avanzadas",
+          "mode": "list",
+          "cachedResultName": "automatizaciones-avanzadas"
+        },
+        "prompt": "={{ $('Message Unificado').item.json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -3776,
+        640
+      ],
+      "id": "c9e371cb-e1db-417e-b36f-a26e0d62eb23",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "gQ8wuvYUPkAixMQC",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3760,
+        832
+      ],
+      "id": "dc040380-50cf-4882-a81b-39e30eea58de",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PYPBtNlxhrE1MIBE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "7764-2802-8010-8f01-a101-182b-f762-449a-4958.ngrok-free.app",
+            "content-length": "621",
+            "accept": "application/json",
+            "baggage": "sentry-environment=prod,sentry-public_key=22217dc31eef5d21afad60404664acb9,sentry-trace_id=f2982294621948688fda483e72fd27af",
+            "content-type": "application/json",
+            "sentry-trace": "f2982294621948688fda483e72fd27af-ba4804be0a48c3c3",
+            "x-forwarded-for": "37.27.106.77",
+            "x-forwarded-host": "7764-2802-8010-8f01-a101-182b-f762-449a-4958.ngrok-free.app",
+            "x-forwarded-proto": "https",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "messages": [
+              {
+                "id": "rCgoffpWRAvIrzoaQRCDOg-hddb8gIAUMs",
+                "from_me": false,
+                "type": "voice",
+                "timestamp": 1786715266,
+                "source": "mobile",
+                "starred": false,
+                "chat_id": "5491168179706@s.whatsapp.net",
+                "from": "5491168179706",
+                "voice": {
+                  "id": "oga-ac28287dfa56440bc8af3a1a4110833a-85d75bf2020050cb",
+                  "mime_type": "audio/ogg; codecs=opus",
+                  "file_size": 7067,
+                  "sha256": "cg9eGEZnGDnAxYf8GMW6wME/cY/xbgHybJ+OdjHjDsw=",
+                  "link": "https://s3.eu-central-1.wasabisys.com/in-files/5491158524108/oga-ac28287dfa56440bc8af3a1a4110833a-85d75bf2020050cb.oga",
+                  "seconds": 3
+                },
+                "from_name": "Maxi"
+              }
+            ],
+            "event": {
+              "type": "messages",
+              "event": "post"
+            },
+            "channel_id": "ANTMAN-Q4FQ2"
+          },
+          "webhookUrl": "https://7764-2802-8010-8f01-a101-182b-f762-449a-4958.ngrok-free.app/webhook/83754566-3a29-450e-90c9-221a565196f4",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Agente Postventa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente Venta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Postventa",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Venta",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Postventa",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Venta",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Guardrail de entrada": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Agente Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Datos cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Message Unificado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Gemini pasar audio a texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini pasar audio a texto": {
+      "main": [
+        [
+          {
+            "node": "Message Unificado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Corrector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Juez": {
+      "main": [
+        [
+          {
+            "node": "Transformacion respuesta agente juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Postventa": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Venta": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Manager": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Corrector": {
+      "main": [
+        [
+          {
+            "node": "Agente Juez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a record": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transformacion respuesta agente juez": {
+      "main": [
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contador": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Agente Corrector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos cliente": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Unificado": {
+      "main": [
+        [
+          {
+            "node": "Call Guardrail de entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Corrector",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "98e432e4-b504-453a-95c8-28c5bcfe1ecc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "efa88620d961e64d26d4ae7bb59c6dc2923944b6da5e71895f32b3f10a9aa49b"
+  },
+  "nodeGroups": [],
+  "id": "36YBuZV49PNjDZXj",
+  "tags": []
+}
